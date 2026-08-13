@@ -1,0 +1,9 @@
+# Sistema operacional / editor
+.DS_Store
+Thumbs.db
+.vscode/
+*.log
+
+# Caso algum dia adicione ferramentas de build/node por conta própria
+node_modules/
+dist/
