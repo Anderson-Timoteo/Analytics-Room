@@ -19,5 +19,5 @@
  * ficam desativadas.
  * ---------------------------------------------------------------
  */
-window.SUPABASE_URL = '';        // ex.: 'https://xxxxxxxxxxxx.supabase.co'
-window.SUPABASE_ANON_KEY = '';   // ex.: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
+window.SUPABASE_URL = 'https://noplasgmzevfxkfvdkxv.supabase.co';        // ex.: 'https://xxxxxxxxxxxx.supabase.co'
+window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5vcGxhc2dtemV2ZnhrZnZka3h2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY2NTYyMDYsImV4cCI6MjEwMjIzMjIwNn0.9p0BwCz_r_I0v7aGBPLg38B8aVPofi8uDJL7tlbwDxM';   // ex.: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'
