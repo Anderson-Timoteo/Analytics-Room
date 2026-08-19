@@ -1083,6 +1083,7 @@ async function switchAnalysis(id){
   await loadPdca();
   await loadFiveWhys();
   await loadDmaic();
+  await loadVoc();
   await loadPareto();
   renderAnalysisSelector();
 }
@@ -1099,6 +1100,7 @@ async function createNewAnalysis(name){
   pdca = defaultPdca();
   fiveWhys = defaultFiveWhys();
   dmaic = defaultDmaic();
+  voc = defaultVoc();
   pareto = defaultPareto();
   try{
     await window.storage.set(keyIshikawa(currentId), JSON.stringify(state), false);
@@ -1106,6 +1108,7 @@ async function createNewAnalysis(name){
     await window.storage.set(keyPdca(currentId), JSON.stringify(pdca), false);
     await window.storage.set(keyFiveWhys(currentId), JSON.stringify(fiveWhys), false);
     await window.storage.set(keyDmaic(currentId), JSON.stringify(dmaic), false);
+    await window.storage.set(keyVoc(currentId), JSON.stringify(voc), false);
     await window.storage.set(keyPareto(currentId), JSON.stringify(pareto), false);
   }catch(e){}
 
@@ -1115,6 +1118,7 @@ async function createNewAnalysis(name){
   renderPdca();
   renderFiveWhys();
   renderDmaic();
+  renderVoc();
   renderPareto();
   if(document.getElementById('view-painel').style.display !== 'none') renderDashboard();
   return id;
@@ -2524,6 +2528,188 @@ document.getElementById('btn-import-5w2h-dmaic').addEventListener('click', () =>
     : 'Essas ações já estavam importadas no projeto.';
 });
 
+
+
+/* ================= VoC (Voz do Cliente) ================= */
+let vocSaveTimer = null;
+function keyVoc(id){ return `analise:${id}:voc`; }
+function defaultVoc(){ return { entries: [] }; }
+let voc = defaultVoc();
+
+async function loadVoc(){
+  try{
+    const res = await window.storage.get(keyVoc(currentId), false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      voc = (parsed && Array.isArray(parsed.entries)) ? parsed : defaultVoc();
+    } else {
+      voc = defaultVoc();
+    }
+  }catch(e){ voc = defaultVoc(); }
+  renderVoc();
+}
+
+function scheduleVocSave(){
+  const el = document.getElementById('status-voc');
+  el.textContent = 'salvando…';
+  clearTimeout(vocSaveTimer);
+  vocSaveTimer = setTimeout(async () => {
+    try{
+      await window.storage.set(keyVoc(currentId), JSON.stringify(voc), false);
+      el.textContent = 'salvo';
+    }catch(e){ el.textContent = 'não foi possível salvar'; }
+  }, 400);
+}
+
+function newVocEntry(){
+  return { id: uid(), comment: '', category: '', sentiment: 'neutro' };
+}
+
+function renderVoc(){
+  const list = document.getElementById('voc-list');
+  list.innerHTML = '';
+  if(voc.entries.length === 0){
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'Nenhum feedback registrado ainda. Clique em "+ novo feedback" pra começar.';
+    list.appendChild(p);
+  } else {
+    voc.entries.forEach((entry, idx) => list.appendChild(buildVocCard(entry, idx)));
+  }
+  renderVocSummary();
+}
+
+function renderVocSummary(){
+  const wrap = document.getElementById('voc-summary');
+  wrap.innerHTML = '';
+  if(voc.entries.length === 0) return;
+  const counts = { positivo: 0, neutro: 0, negativo: 0 };
+  voc.entries.forEach(e => { counts[e.sentiment] = (counts[e.sentiment] || 0) + 1; });
+  const labels = { positivo: '😊 Positivos', neutro: '😐 Neutros', negativo: '😞 Negativos' };
+  Object.keys(labels).forEach(key => {
+    const badge = document.createElement('span');
+    badge.className = 'voc-summary-badge';
+    badge.textContent = `${labels[key]}: ${counts[key] || 0}`;
+    wrap.appendChild(badge);
+  });
+}
+
+function buildVocCard(entry, idx){
+  const card = document.createElement('div');
+  card.className = 'voc-card';
+
+  const head = document.createElement('div');
+  head.className = 'voc-card-head';
+  const num = document.createElement('div');
+  num.className = 'cat-num';
+  num.textContent = idx + 1;
+  const del = document.createElement('button');
+  del.className = 'icon-btn danger';
+  del.title = 'Remover feedback';
+  del.textContent = '×';
+  del.addEventListener('click', () => {
+    voc.entries = voc.entries.filter(e => e.id !== entry.id);
+    scheduleVocSave();
+    renderVoc();
+  });
+  head.appendChild(num);
+  head.appendChild(del);
+  card.appendChild(head);
+
+  const comment = document.createElement('textarea');
+  comment.className = 'voc-comment';
+  comment.rows = 2;
+  comment.placeholder = 'O que o cliente disse? (comentário, reclamação, elogio...)';
+  comment.value = entry.comment;
+  comment.addEventListener('input', () => { entry.comment = comment.value; scheduleVocSave(); });
+  card.appendChild(comment);
+
+  const metaRow = document.createElement('div');
+  metaRow.className = 'voc-meta-row';
+
+  const catField = document.createElement('div');
+  catField.className = 'voc-field';
+  const catLabel = document.createElement('label');
+  catLabel.textContent = 'Categoria';
+  const catInput = document.createElement('input');
+  catInput.placeholder = 'Ex.: Atendimento, Entrega, Preço…';
+  catInput.value = entry.category;
+  catInput.addEventListener('input', () => { entry.category = catInput.value; scheduleVocSave(); });
+  catField.appendChild(catLabel);
+  catField.appendChild(catInput);
+
+  const sentField = document.createElement('div');
+  sentField.className = 'voc-field';
+  const sentLabel = document.createElement('label');
+  sentLabel.textContent = 'Sentimento';
+  const sentGroup = document.createElement('div');
+  sentGroup.className = 'voc-sentiment';
+  [['positivo','😊'], ['neutro','😐'], ['negativo','😞']].forEach(([key, icon]) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.textContent = icon;
+    btn.title = key;
+    btn.classList.toggle('active', entry.sentiment === key);
+    btn.addEventListener('click', () => {
+      entry.sentiment = key;
+      scheduleVocSave();
+      renderVoc();
+    });
+    sentGroup.appendChild(btn);
+  });
+  sentField.appendChild(sentLabel);
+  sentField.appendChild(sentGroup);
+
+  metaRow.appendChild(catField);
+  metaRow.appendChild(sentField);
+  card.appendChild(metaRow);
+
+  return card;
+}
+
+document.getElementById('btn-add-voc').addEventListener('click', () => {
+  voc.entries.push(newVocEntry());
+  scheduleVocSave();
+  renderVoc();
+});
+
+document.getElementById('btn-new-voc').addEventListener('click', () => {
+  if(confirm('Isso apaga todos os feedbacks registrados. Continuar?')){
+    voc = defaultVoc();
+    scheduleVocSave();
+    renderVoc();
+  }
+});
+
+document.getElementById('btn-send-voc-pareto').addEventListener('click', () => {
+  const note = document.getElementById('import-note-voc');
+  const withCategory = voc.entries.filter(e => e.category.trim() !== '');
+  if(withCategory.length === 0){
+    note.style.display = 'block';
+    note.textContent = 'Preencha a categoria de pelo menos um feedback antes de enviar.';
+    return;
+  }
+  const counts = {};
+  withCategory.forEach(e => {
+    const key = e.category.trim();
+    counts[key] = (counts[key] || 0) + 1;
+  });
+  const existing = new Set(pareto.items.map(i => i.problem.trim().toLowerCase()));
+  let added = 0;
+  Object.keys(counts).forEach(category => {
+    if(existing.has(category.toLowerCase())) return;
+    pareto.items.push({ id: uid(), problem: category, value: counts[category] });
+    existing.add(category.toLowerCase());
+    added++;
+  });
+  scheduleParetoSave();
+  renderPareto();
+  note.style.display = 'block';
+  note.textContent = added > 0
+    ? `${added} categoria(s) enviada(s) pro Pareto, com a contagem de menções.`
+    : 'Essas categorias já estavam no Pareto.';
+});
+
 /* ================= Pareto ================= */
 let paretoSaveTimer = null;
 
@@ -2874,12 +3060,14 @@ function switchView(view){
   document.querySelectorAll('.tab-btn[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   document.getElementById('view-painel').style.display = view === 'painel' ? '' : 'none';
   document.getElementById('view-pdca').style.display = view === 'pdca' ? '' : 'none';
+  document.getElementById('view-voc').style.display = view === 'voc' ? '' : 'none';
   document.getElementById('view-pareto').style.display = view === 'pareto' ? '' : 'none';
   document.getElementById('view-ishikawa').style.display = view === 'ishikawa' ? '' : 'none';
   document.getElementById('view-5porques').style.display = view === '5porques' ? '' : 'none';
   document.getElementById('view-5w2h').style.display = view === '5w2h' ? '' : 'none';
   document.getElementById('view-dmaic').style.display = view === 'dmaic' ? '' : 'none';
   if(view === 'ishikawa') requestAnimationFrame(drawBones);
+  if(view === 'voc') renderVoc();
   if(view === 'pareto') renderPareto();
   if(view === '5porques') renderFiveWhys();
   if(view === '5w2h') renderPlan();
@@ -2927,6 +3115,7 @@ async function startAppData(){
   await loadPdca();
   await loadFiveWhys();
   await loadDmaic();
+  await loadVoc();
   await loadPareto();
   // Painel fica oculto por padrão; renderDashboard() só roda quando a aba for reativada.
 }
