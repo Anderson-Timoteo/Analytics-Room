@@ -2923,7 +2923,7 @@ function renderParetoChart(){
     rect.appendChild(title);
     svg.appendChild(rect);
 
-    const valLabel = svgEl('text', { x: cx, y: baseY - h - 6, 'text-anchor': 'middle', 'font-family': 'Inter, sans-serif', 'font-size': 10, fill: '#211B15' });
+    const valLabel = svgEl('text', { x: cx, y: baseY - h - 18, 'text-anchor': 'middle', 'font-family': 'Inter, sans-serif', 'font-size': 10, fill: '#211B15' });
     valLabel.textContent = formatParetoNumber(p.val);
     svg.appendChild(valLabel);
 
