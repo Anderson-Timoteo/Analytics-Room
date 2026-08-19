@@ -377,6 +377,42 @@
     svg#bones{ display:none; }
   }
 
+
+/* ---- VoC ---- */
+.voc-list{ display:flex; flex-direction:column; gap:14px; }
+.voc-card{
+  background: var(--paper-card); border: 1px solid var(--line-strong);
+  border-radius: 8px; box-shadow: var(--shadow-card); padding: 14px 16px 16px;
+}
+.voc-card-head{ display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+.voc-comment{
+  width:100%; border:none; border-bottom: 1px dashed var(--line-strong); background:transparent;
+  font-family:'Inter', sans-serif; font-size:13.5px; color: var(--ink); resize:none;
+  padding: 4px 2px 8px; outline:none;
+}
+.voc-comment:focus{ border-bottom-color: var(--rust); }
+.voc-meta-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; }
+.voc-field{ display:flex; flex-direction:column; gap:3px; flex:1; min-width:140px; }
+.voc-field label{ font-size:9.5px; letter-spacing:0.09em; text-transform:uppercase; color: var(--rust-dark); }
+.voc-field input{
+  border:none; border-bottom:1px solid var(--line); background:transparent;
+  font-family:'Inter', sans-serif; font-size:12.5px; color: var(--ink); padding:4px 2px; outline:none;
+}
+.voc-field input:focus{ border-bottom-color: var(--rust); }
+.voc-sentiment{ display:flex; gap:6px; }
+.voc-sentiment button{
+  flex:1; border:1px solid var(--line-strong); background: var(--paper); border-radius:6px;
+  padding:6px; cursor:pointer; font-size:15px; opacity:0.5;
+}
+.voc-sentiment button.active{ opacity:1; border-color: var(--rust); background: var(--paper-card); }
+
+.voc-summary{ display:flex; gap:10px; margin-bottom:16px; flex-wrap:wrap; }
+.voc-summary-badge{
+  font-family:'Inter', sans-serif; font-size:12px; padding:6px 14px; border-radius:20px;
+  border:1px solid var(--line-strong); color: var(--ink-soft);
+}
+
+
   /* ---- 5 Porques ---- */
   .whys-list{ display:flex; flex-direction:column; gap:18px; }
   .why-chain{
@@ -805,6 +841,7 @@
         <span class="status" id="status-voc">salvo</span>
       </div>
     </div>
+  
 
     <div id="import-note-voc" class="import-note" style="display:none"></div>
 
