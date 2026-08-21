@@ -18,7 +18,8 @@ Feito pra rodar direto no navegador, sem instalação, sem curva de aprendizado 
 | **5 Porquês** | Aprofunda uma causa específica até achar a causa raiz de verdade | Alimenta o 5W2H |
 | **5W2H + GUT** | Transforma uma causa em plano de ação (o quê, onde, quando, por quê, quem, como, quanto custa) e prioriza por Gravidade × Urgência × Tendência | Recebe do Ishikawa/5 Porquês |
 | **DMAIC** | Framework do Lean Six Sigma pra projetos maiores, baseado em dados (Definir, Medir, Analisar, Melhorar, Controlar) | Importa de Ishikawa e 5W2H |
-| **A-M-P-R-E-C** | Metodologia própria do projeto: Analisar o cenário, Medir com números, Procurar a causa, Resolver, Estabilizar e Compartilhar o aprendizado | Importa de Ishikawa, 5 Porquês e 5W2H |
+|  **FCA** | Forma mais simplificada de utilizar as metodologias mais a fundo, sendo significado de Fato, Causa, Ação.
+|  **VOC** | Voz do cliente, onde tudo começa.
 
 Nenhuma dessas ferramentas é uma ilha. Uma causa marcada como solução no Ishikawa pode virar uma linha no 5W2H com um clique. Uma causa raiz confirmada no 5 Porquês pode virar uma etapa do DMAIC. A ideia é que o trabalho analítico flua de uma tela pra outra, do jeito que você faria numa investigação real.
 
