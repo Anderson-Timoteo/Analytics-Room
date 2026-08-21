@@ -261,6 +261,22 @@
   .sol-text{ color: var(--moss); font-weight:500; }
   .empty{ font-size: 12.5px; color: var(--ink-soft); font-style: italic; }
 
+.export-menu-wrap{ position: relative; display: inline-block; }
+.export-menu{
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 50;
+  background: var(--paper-card); border: 1px solid var(--line-strong);
+  border-radius: 8px; box-shadow: var(--shadow-card); overflow: hidden;
+  min-width: 190px;
+}
+.export-menu-item{
+  display: block; width: 100%; text-align: left; background: none; border: none;
+  font-family:'Inter', sans-serif; font-size: 13px; color: var(--ink);
+  padding: 10px 14px; cursor: pointer;
+}
+.export-menu-item:hover{ background: var(--paper); color: var(--rust); }
+.export-menu-item + .export-menu-item{ border-top: 1px solid var(--line); }
+
+  
   /* ---- 5W2H ---- */
   .plan-list{ display:flex; flex-direction:column; gap:16px; }
   .action-card{
@@ -820,9 +836,16 @@
         <div class="analysis-bar">
           <span class="analysis-label">Análise</span>
           <select id="analysis-select"></select>
-          <button class="ghost" id="btn-new-analysis">+ Nova análise</button>
-          <button class="ghost archive-btn" id="btn-archive-analysis">🗄️ Arquivar Análise</button>
-          <button class="ghost" id="btn-export-pdf">🖨️ Exportar PDF</button>
+          <button class="ghost" id="btn-new-analysis">Nova análise</button>
+          
+          <div class="export-menu-wrap">
+  <button class="ghost archive-btn" id="btn-export-menu-toggle">Exportar dados</button>
+  <div id="export-menu" class="export-menu" style="display:none">
+    <button class="export-menu-item" id="btn-archive-analysis">📄 SQL</button>
+    <button class="export-menu-item" id="btn-export-pdf">🖨️ PDF</button>
+  </div>
+</div>
+
           <span class="status" id="status-analysis"></span>
         </div>
       </header>
@@ -1343,6 +1366,20 @@ function buildSqlExport(meta, ishi, fw, pl, pd, dm, pa){
 
   return lines.join('\n');
 }
+
+document.getElementById('btn-export-menu-toggle').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = document.getElementById('export-menu');
+  menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+});
+document.addEventListener('click', (e) => {
+  const wrap = document.querySelector('.export-menu-wrap');
+  if(wrap && !wrap.contains(e.target)) document.getElementById('export-menu').style.display = 'none';
+});
+document.querySelectorAll('.export-menu-item').forEach(btn => {
+  btn.addEventListener('click', () => { document.getElementById('export-menu').style.display = 'none'; });
+});
+
 
 document.getElementById('btn-archive-analysis').addEventListener('click', () => {
   const meta = analyses.find(a => a.id === currentId);
