@@ -294,6 +294,29 @@
   .add-row--wide button{ width:100%; padding: 10px; border-style: dashed; }
   .priority-active{ background: var(--rust); border-color: var(--rust); color: var(--paper-card); }
 
+  /* ---- FCA ---- */
+.fca-card{
+  background: var(--paper-card); border: 1px solid var(--line-strong);
+  border-radius: 8px; box-shadow: var(--shadow-card); padding: 14px 16px 16px;
+}
+.fca-card-head{ display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.fca-fields{ display:flex; flex-direction:column; gap: 13px; }
+.fca-field label{
+  font-size: 9.5px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--rust-dark);
+  display:block; margin-bottom: 3px;
+}
+.fca-field textarea, .fca-field input{
+  width: 100%; border:none; border-bottom: 1px solid var(--line); background: transparent;
+  font-family:'Inter', sans-serif; font-size: 12.5px; color: var(--ink);
+  padding: 4px 2px; outline:none; resize: none; box-sizing: border-box;
+}
+.fca-field textarea:focus, .fca-field input:focus{ border-bottom-color: var(--rust); }
+.fca-field--fact label{ color: var(--rust-dark); }
+.fca-field--cause label{ color: var(--danger); }
+.fca-field--action label{ color: var(--moss); }
+.fca-meta-row{ display:flex; gap:14px; flex-wrap:wrap; }
+.fca-meta-row .fca-field{ flex:1; min-width:130px; }
+
   /* ---- PDCA ---- */
   .pdca-board{ display:grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 14px; align-items: start; }
   .pdca-col{
@@ -777,6 +800,7 @@
       <button class="tab-btn" data-view="5porques">🪜 &nbsp;5 Porquês</button>
       <button class="tab-btn" data-view="5w2h">🗂️ &nbsp;5W2H</button>
       <button class="tab-btn" data-view="dmaic">🎯 &nbsp;DMAIC</button>
+      <button class="tab-btn" data-view="fca">⚡ &nbsp;FCA</button>
       <button class="tab-btn tab-btn--soon" disabled title="Em breve">+ &nbsp;em breve</button>
     </nav>
     <div class="sidebar-footer">
@@ -994,6 +1018,27 @@
     <div class="pdca-board dmaic-board" id="dmaic-board"></div>
   </section>
 
+  <section id="view-fca" class="view" style="display:none">
+    <div class="section-head">
+      <p class="eyebrow">Resposta rápida a desvios</p>
+      <h2>FCA</h2>
+      <p class="sub">Fato, Causa, Ação. Use quando um resultado sair fora do esperado: descreva o fato de forma objetiva e mensurável, investigue a causa real (não o sintoma) e defina a ação que elimina a causa — não só o efeito.</p>
+      <div class="toolbar">
+        <button class="ghost" id="btn-import-ishikawa-fca">Importar problema do Ishikawa</button>
+        <button class="ghost" id="btn-new-fca">Novo quadro</button>
+        <span class="status" id="status-fca">salvo</span>
+      </div>
+    </div>
+
+    <div id="import-note-fca" class="import-note" style="display:none"></div>
+
+    <div id="fca-list" class="plan-list"></div>
+
+    <div class="add-row add-row--wide">
+      <button class="mini" id="btn-add-fca">+ novo FCA</button>
+    </div>
+  </section>
+
     </div>
   </main>
 </div>
@@ -1100,6 +1145,7 @@ async function createNewAnalysis(name){
   pdca = defaultPdca();
   fiveWhys = defaultFiveWhys();
   dmaic = defaultDmaic();
+  fca = defaultFca();
   voc = defaultVoc();
   pareto = defaultPareto();
   try{
@@ -1108,6 +1154,7 @@ async function createNewAnalysis(name){
     await window.storage.set(keyPdca(currentId), JSON.stringify(pdca), false);
     await window.storage.set(keyFiveWhys(currentId), JSON.stringify(fiveWhys), false);
     await window.storage.set(keyDmaic(currentId), JSON.stringify(dmaic), false);
+    await window.storage.set(keyFca(currentId), JSON.stringify(fca), false);
     await window.storage.set(keyVoc(currentId), JSON.stringify(voc), false);
     await window.storage.set(keyPareto(currentId), JSON.stringify(pareto), false);
   }catch(e){}
@@ -1118,6 +1165,7 @@ async function createNewAnalysis(name){
   renderPdca();
   renderFiveWhys();
   renderDmaic();
+  renderFca();
   renderVoc();
   renderPareto();
   if(document.getElementById('view-painel').style.display !== 'none') renderDashboard();
@@ -2325,6 +2373,189 @@ document.getElementById('btn-export-pdf').addEventListener('click', () => {
 
   window.print();
 });
+/* ================= FCA (Fato, Causa, Ação) ================= */
+let fcaSaveTimer = null;
+function keyFca(id){ return `analise:${id}:fca`; }
+function defaultFca(){ return { entries: [] }; }
+let fca = defaultFca();
+
+async function loadFca(){
+  try{
+    const res = await window.storage.get(keyFca(currentId), false);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      fca = (parsed && Array.isArray(parsed.entries)) ? parsed : defaultFca();
+    } else {
+      fca = defaultFca();
+    }
+  }catch(e){ fca = defaultFca(); }
+  renderFca();
+}
+
+function scheduleFcaSave(){
+  const el = document.getElementById('status-fca');
+  el.textContent = 'salvando…';
+  clearTimeout(fcaSaveTimer);
+  fcaSaveTimer = setTimeout(async () => {
+    try{
+      await window.storage.set(keyFca(currentId), JSON.stringify(fca), false);
+      el.textContent = 'salvo';
+    }catch(e){ el.textContent = 'não foi possível salvar'; }
+  }, 400);
+}
+
+function newFcaEntry(prefill){
+  return Object.assign({
+    id: uid(), fact:'', cause:'', action:'', responsible:'', deadline:'', done:false
+  }, prefill || {});
+}
+
+function renderFca(){
+  const list = document.getElementById('fca-list');
+  list.innerHTML = '';
+  if(fca.entries.length === 0){
+    const p = document.createElement('p');
+    p.className = 'empty';
+    p.textContent = 'Nenhum FCA registrado ainda. Clique em "+ novo FCA" pra começar.';
+    list.appendChild(p);
+    return;
+  }
+  fca.entries.forEach((entry, idx) => list.appendChild(buildFcaCard(entry, idx)));
+}
+
+function buildFcaCard(entry, idx){
+  const card = document.createElement('div');
+  card.className = 'fca-card action-card' + (entry.done ? ' is-done' : '');
+
+  const head = document.createElement('div');
+  head.className = 'fca-card-head action-card-head';
+  const num = document.createElement('div');
+  num.className = 'cat-num';
+  num.textContent = idx + 1;
+  const del = document.createElement('button');
+  del.className = 'icon-btn danger';
+  del.title = 'Remover FCA';
+  del.textContent = '×';
+  del.addEventListener('click', () => {
+    fca.entries = fca.entries.filter(e => e.id !== entry.id);
+    scheduleFcaSave();
+    renderFca();
+  });
+  head.appendChild(num);
+  head.appendChild(del);
+  card.appendChild(head);
+
+  const fieldsWrap = document.createElement('div');
+  fieldsWrap.className = 'fca-fields';
+
+  fieldsWrap.appendChild(buildFcaField(entry, 'fact', 'Fato', 'O que aconteceu, de forma objetiva e mensurável? (ex.: SLA caiu de 95% pra 78% na última semana)', 'fca-field--fact'));
+  fieldsWrap.appendChild(buildFcaField(entry, 'cause', 'Causa', 'Por que isso aconteceu? (a causa real, não o sintoma)', 'fca-field--cause'));
+  fieldsWrap.appendChild(buildFcaField(entry, 'action', 'Ação', 'O que será feito pra eliminar a causa?', 'fca-field--action'));
+
+  const metaRow = document.createElement('div');
+  metaRow.className = 'fca-meta-row';
+  metaRow.appendChild(buildFcaField(entry, 'responsible', 'Responsável', ''));
+  metaRow.appendChild(buildFcaField(entry, 'deadline', 'Prazo', ''));
+  fieldsWrap.appendChild(metaRow);
+
+  card.appendChild(fieldsWrap);
+  card.appendChild(buildFcaFooter(entry, () => {
+    card.classList.toggle('is-done', entry.done);
+  }));
+
+  return card;
+}
+
+function buildFcaField(entry, key, label, placeholder, extraClass){
+  const wrap = document.createElement('div');
+  wrap.className = 'fca-field' + (extraClass ? ' ' + extraClass : '');
+  const labelEl = document.createElement('label');
+  labelEl.textContent = label;
+  const isLong = key === 'fact' || key === 'cause' || key === 'action';
+  const input = document.createElement(isLong ? 'textarea' : 'input');
+  if(isLong) input.rows = 2;
+  if(placeholder) input.placeholder = placeholder;
+  input.value = entry[key];
+  input.addEventListener('input', () => { entry[key] = input.value; scheduleFcaSave(); });
+  wrap.appendChild(labelEl);
+  wrap.appendChild(input);
+  return wrap;
+}
+
+function buildFcaFooter(entry, onDoneToggle){
+  const footer = document.createElement('div');
+  footer.className = 'action-footer';
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'mini';
+  sendBtn.textContent = 'Enviar ação para o 5W2H';
+  sendBtn.addEventListener('click', () => {
+    if(!entry.action.trim()){
+      alert('Preencha o campo "Ação" antes de enviar pro 5W2H.');
+      return;
+    }
+    plan.items.push(newAction({ what: entry.action.trim(), why: `Ação FCA — fato: ${entry.fact || '(sem descrição)'}` }));
+    schedulePlanSave();
+    alert('Ação enviada pro 5W2H! Complete os demais campos por lá.');
+  });
+  footer.appendChild(sendBtn);
+
+  const doneToggle = document.createElement('label');
+  doneToggle.className = 'done-toggle';
+  const doneCheckbox = document.createElement('input');
+  doneCheckbox.type = 'checkbox';
+  doneCheckbox.checked = !!entry.done;
+  doneCheckbox.addEventListener('change', () => {
+    entry.done = doneCheckbox.checked;
+    onDoneToggle();
+    scheduleFcaSave();
+  });
+  const doneText = document.createElement('span');
+  doneText.textContent = 'Concluído';
+  doneToggle.appendChild(doneCheckbox);
+  doneToggle.appendChild(doneText);
+  footer.appendChild(doneToggle);
+
+  return footer;
+}
+
+document.getElementById('btn-add-fca').addEventListener('click', () => {
+  fca.entries.push(newFcaEntry());
+  scheduleFcaSave();
+  renderFca();
+});
+
+document.getElementById('btn-new-fca').addEventListener('click', () => {
+  if(confirm('Isso apaga todos os FCAs registrados. Continuar?')){
+    fca = defaultFca();
+    scheduleFcaSave();
+    renderFca();
+  }
+});
+
+document.getElementById('btn-import-ishikawa-fca').addEventListener('click', () => {
+  const note = document.getElementById('import-note-fca');
+  if(!state.problem || !state.problem.trim()){
+    note.style.display = 'block';
+    note.textContent = 'O Ishikawa ainda não tem um problema descrito na cabeça do peixe.';
+    return;
+  }
+  const existing = new Set(fca.entries.map(e => e.fact.trim().toLowerCase()));
+  const key = state.problem.trim().toLowerCase();
+  if(existing.has(key)){
+    note.style.display = 'block';
+    note.textContent = 'Esse problema já está registrado como fato em algum FCA.';
+    return;
+  }
+  fca.entries.push(newFcaEntry({ fact: state.problem.trim() }));
+  scheduleFcaSave();
+  renderFca();
+  note.style.display = 'block';
+  note.textContent = 'Problema do Ishikawa importado como novo fato.';
+});
+
+
+
 
 /* ================= DMAIC ================= */
 let dmaicSaveTimer = null;
@@ -3066,6 +3297,7 @@ function switchView(view){
   document.getElementById('view-5porques').style.display = view === '5porques' ? '' : 'none';
   document.getElementById('view-5w2h').style.display = view === '5w2h' ? '' : 'none';
   document.getElementById('view-dmaic').style.display = view === 'dmaic' ? '' : 'none';
+  document.getElementById('view-fca').style.display = view === 'fca' ? '' : 'none';
   if(view === 'ishikawa') requestAnimationFrame(drawBones);
   if(view === 'voc') renderVoc();
   if(view === 'pareto') renderPareto();
@@ -3073,6 +3305,7 @@ function switchView(view){
   if(view === '5w2h') renderPlan();
   if(view === 'pdca') renderPdca();
   if(view === 'dmaic') renderDmaic();
+  if(view === 'fca') renderFca();
   if(view === 'painel') renderDashboard();
 }
 
@@ -3115,6 +3348,8 @@ async function startAppData(){
   await loadPdca();
   await loadFiveWhys();
   await loadDmaic();
+  await loadIshikawa();
+  await loadFca();
   await loadVoc();
   await loadPareto();
   // Painel fica oculto por padrão; renderDashboard() só roda quando a aba for reativada.
@@ -3292,8 +3527,6 @@ document.getElementById('btn-sign-out').addEventListener('click', async () => {
 
 (async function bootstrapAuth(){
   if(!window.authAPI || !window.authAPI.isBackendConfigured){
-    // Sem backend configurado (config.js vazio): segue direto como visitante,
-    // sem travar o app. Veja docs/BACKEND.md pra ligar contas de verdade.
     window.authAPI ? window.authAPI.continueAsGuest() : null;
     await enterApp();
     return;
