@@ -29,11 +29,11 @@ Nenhuma dessas ferramentas é uma ilha. Uma causa marcada como solução no Ishi
 
 Não tem instalação. Não tem build. É um site.
 
-1. Abra o link do site (ou o `index.html` localmente).
+1. Abra o link do site.
 2. Na primeira vez, escolha **entrar com conta**, **criar conta** ou **continuar como visitante** — sem conta, você usa tudo normalmente, só que nada fica salvo entre sessões.
 3. Diga seu nome e (se quiser) dê um título pra sua análise.
 4. Escolha a metodologia no menu lateral (☰ recolhe/expande) e comece a preencher.
-5. Quando terminar, use os botões de exportação — **SQL**, **Excel** ou **PDF** (esse último já sai com uma capa automática, tipo um relatório de verdade, com o título da sua análise).
+5. Quando terminar, use os botões de exportação — **SQL**,**PDF** (esse último já sai com uma capa automática, tipo um relatório de verdade, com o título da sua análise).
 
 ---
 
@@ -62,17 +62,12 @@ Essa ponte entre o app e o backend vive isolada em `js/storage-adapter.js` — o
 
 ---
 
-## 🚀 Publicando como site
-
-Como é só HTML/CSS/JS, qualquer hospedagem de site estático serve. Hoje em dia, as opções mais indicadas e gratuitas:
-
 - **Cloudflare Pages** — conecta direto no GitHub, HTTPS automático, banda ilimitada de graça.
 - **GitHub Pages** — o mais simples se você já vive no GitHub.
 
 Basta subir este repositório e apontar a hospedagem pra ele. Sem passo de build.
 
 ---
-
 ## 🗺️ O que vem por aí
 
 O menu lateral já reserva espaço pra novas metodologias — o projeto foi pensado pra crescer sem precisar refazer o que já existe. Ideias em radar: mais pontes de importação entre ferramentas, relatórios comparativos entre análises, e (quem sabe) um agente de IA que ajuda a interpretar os dados direto na tela.
