@@ -62,6 +62,12 @@ reads these directly.
 - **Regression sweep**: click all 8 sidebar tabs, confirm each renders and
   console stays clean. The handoff refactor touched every tool view's
   import/send button.
+- **Seletor de exportação**: PDF e Excel abrem antes um modal (`#export-picker`,
+  `openExportPicker('pdf'|'xlsx')`) com um checkbox por metodologia. Etapas
+  `vazia` vêm desabilitadas; o resto vem marcado. Resolve com a lista de views
+  ou `null` se cancelar (Esc, Cancelar ou clique no backdrop). Os listeners são
+  removidos no close — se mexer nele, teste abrir/cancelar várias vezes e
+  confirmar que só sai **um** blob. SQL não passa pelo seletor (é dump completo).
 - **Export PDF (dossiê)**: "Exportar dados" → "🖨️ PDF". Monta capa + sumário +
   uma metodologia por página (só as com dados, na ordem da trilha — o handler
   **reordena o DOM** e restaura no `afterprint`). `window.print()` trava a

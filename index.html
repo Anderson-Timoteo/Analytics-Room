@@ -331,6 +331,85 @@
 .export-menu-item:hover{ background: var(--paper); color: var(--rust); }
 .export-menu-item + .export-menu-item{ border-top: 1px solid var(--line); }
 
+/* ---- Seletor de metodologias para exportar ---- */
+.xp-backdrop{
+  position:fixed; inset:0; z-index:1100; display:none;
+  align-items:center; justify-content:center; padding:24px;
+  background:rgba(8,6,5,0.66);
+}
+.xp-backdrop.open{ display:flex; }
+.xp-panel{
+  width:100%; max-width:580px; max-height:calc(100vh - 48px);
+  display:flex; flex-direction:column;
+  background:var(--paper-card); border:1px solid var(--line-strong);
+  border-radius:var(--radius); box-shadow:0 24px 60px rgba(0,0,0,0.5);
+}
+.xp-head{
+  padding:18px 20px 14px; border-bottom:1px solid var(--line);
+  background:var(--hatch), var(--paper-card);
+}
+.xp-kicker{
+  display:block; font-size:9.5px; letter-spacing:0.2em; text-transform:uppercase;
+  color:var(--rust-dark); margin-bottom:6px;
+}
+.xp-title{
+  font-family:'Oswald','Archivo',sans-serif; font-weight:700; font-size:20px;
+  text-transform:uppercase; letter-spacing:0.04em; color:var(--ink); margin:0 0 6px;
+}
+.xp-sub{ font-size:12px; color:var(--ink-soft); margin:0; line-height:1.5; }
+
+.xp-tools{
+  display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  padding:10px 20px; border-bottom:1px solid var(--line);
+}
+.xp-tools button{ padding:4px 10px; font-size:11px; }
+.xp-count{ margin-left:auto; font-size:11px; color:var(--ink-soft); }
+
+.xp-list{ overflow-y:auto; padding:6px 12px 10px; flex:1; min-height:0; }
+.xp-row{
+  display:flex; align-items:flex-start; gap:11px;
+  padding:10px 8px; border-bottom:1px solid var(--line); cursor:pointer;
+}
+.xp-row:last-child{ border-bottom:none; }
+.xp-row:hover{ background:var(--paper-raised); }
+.xp-row input{
+  width:16px; height:16px; margin:1px 0 0; flex-shrink:0;
+  accent-color:var(--rust); cursor:pointer;
+}
+.xp-row.is-empty{ opacity:0.45; cursor:not-allowed; }
+.xp-row.is-empty:hover{ background:transparent; }
+.xp-row.is-empty input{ cursor:not-allowed; }
+.xp-main{ flex:1; min-width:0; }
+.xp-name{
+  font-family:'Oswald','Archivo',sans-serif; font-size:13.5px; font-weight:600;
+  text-transform:uppercase; letter-spacing:0.04em; color:var(--ink);
+  display:flex; align-items:center; gap:8px;
+}
+.xp-chip{
+  font-size:8.5px; letter-spacing:0.1em; text-transform:uppercase; font-weight:600;
+  padding:2px 6px; border-radius:2px; border:1px solid var(--line-strong); color:var(--ink-soft);
+}
+.xp-chip[data-s="andamento"]{ border-color:var(--rust); color:var(--rust-dark); }
+.xp-chip[data-s="ok"]{ border-color:var(--moss); color:var(--moss); background:var(--moss-bg); }
+.xp-sum{ font-size:11px; color:var(--ink-soft); margin-top:3px; line-height:1.45; }
+
+.xp-foot{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding:14px 20px; border-top:1px solid var(--line);
+}
+.xp-hint{ font-size:11px; color:var(--ink-soft); flex:1; min-width:140px; }
+.xp-go{
+  background:var(--rust); border-color:var(--rust); color:#fff; font-weight:600;
+  padding:9px 20px;
+}
+.xp-go:hover:not(:disabled){ background:var(--rust-dark); border-color:var(--rust-dark); color:#fff; }
+.xp-go:disabled{ opacity:0.45; cursor:not-allowed; }
+
+@media (max-width:640px){
+  .xp-panel{ max-width:none; }
+  .xp-sum{ display:none; }
+}
+
   
   /* ---- 5W2H ---- */
   .plan-list{ display:flex; flex-direction:column; gap:16px; }
@@ -1094,7 +1173,7 @@
 <div id="print-toc" class="print-toc">
   <span class="pt-kicker">Sumário</span>
   <h2 class="pt-title">Conteúdo deste documento</h2>
-  <p class="pt-note">As metodologias abaixo aparecem nesta ordem, cada uma começando em uma página nova. Etapas sem nenhum dado registrado foram omitidas para manter o dossiê enxuto.</p>
+  <p class="pt-note" id="pt-note">As metodologias abaixo aparecem nesta ordem, cada uma começando em uma página nova.</p>
   <ol class="pt-list" id="pt-list"></ol>
   <div class="pt-progress" id="pt-progress"></div>
   <p class="pt-omitted" id="pt-omitted"></p>
@@ -1483,6 +1562,27 @@
   </main>
 </div>
 
+<div id="export-picker" class="xp-backdrop" role="dialog" aria-modal="true" aria-labelledby="xp-title">
+  <div class="xp-panel">
+    <div class="xp-head">
+      <span class="xp-kicker" id="xp-kicker">Exportar</span>
+      <h2 class="xp-title" id="xp-title">Escolher metodologias</h2>
+      <p class="xp-sub" id="xp-sub">Marque o que deve entrar no arquivo.</p>
+    </div>
+    <div class="xp-tools">
+      <button type="button" class="ghost mini" id="xp-all">Marcar todas</button>
+      <button type="button" class="ghost mini" id="xp-none">Desmarcar todas</button>
+      <span class="xp-count" id="xp-count"></span>
+    </div>
+    <div class="xp-list" id="xp-list"></div>
+    <div class="xp-foot">
+      <span class="xp-hint" id="xp-hint"></span>
+      <button type="button" class="ghost" id="xp-cancel">Cancelar</button>
+      <button type="button" class="xp-go" id="xp-confirm">Exportar</button>
+    </div>
+  </div>
+</div>
+
 <div class="watermark">Created by Anderson Timoteo</div>
 
 
@@ -1824,6 +1924,113 @@ document.getElementById('btn-archive-analysis').addEventListener('click', () => 
   setTimeout(() => { statusEl.textContent = ''; }, 4000);
 });
 
+/* ================= Seletor de metodologias para exportar =================
+   Compartilhado por PDF e Excel. Resolve com a lista de views escolhidas,
+   ou com null se o usuário cancelar. Etapas sem dados aparecem desabilitadas. */
+
+function openExportPicker(kind){
+  const isPdf = kind === 'pdf';
+  const stages = trilhaStages();
+  const back    = document.getElementById('export-picker');
+  const list    = document.getElementById('xp-list');
+  const countEl = document.getElementById('xp-count');
+  const confirm = document.getElementById('xp-confirm');
+  const btnAll  = document.getElementById('xp-all');
+  const btnNone = document.getElementById('xp-none');
+  const btnCancel = document.getElementById('xp-cancel');
+
+  document.getElementById('xp-kicker').textContent = isPdf ? 'Exportar · PDF' : 'Exportar · Excel';
+  document.getElementById('xp-title').textContent  = isPdf ? 'O que vai no dossiê' : 'O que vai na planilha';
+  document.getElementById('xp-sub').textContent = isPdf
+    ? 'Cada metodologia marcada vira uma seção do documento, começando em página nova. Desmarque o que não for útil para não gerar folha à toa.'
+    : 'Cada metodologia marcada vira uma aba da planilha.';
+  document.getElementById('xp-hint').textContent = isPdf
+    ? 'Capa e sumário entram sempre.'
+    : 'As abas Capa e Painel entram sempre.';
+
+  list.innerHTML = '';
+  const inputs = [];
+  stages.forEach(st => {
+    const empty = st.status === 'vazia';
+    const row = document.createElement('label');
+    row.className = 'xp-row' + (empty ? ' is-empty' : '');
+
+    const cb = document.createElement('input');
+    cb.type = 'checkbox';
+    cb.value = st.view;
+    cb.checked = !empty;
+    cb.disabled = empty;
+
+    const main = document.createElement('div');
+    main.className = 'xp-main';
+    const name = document.createElement('div');
+    name.className = 'xp-name';
+    name.append(document.createTextNode(`${st.icon} ${st.name}`));
+    const chip = document.createElement('span');
+    chip.className = 'xp-chip';
+    chip.dataset.s = st.status;
+    chip.textContent = st.status === 'ok' ? 'preenchida' : (st.status === 'andamento' ? 'em andamento' : 'sem dados');
+    name.appendChild(chip);
+    const sum = document.createElement('div');
+    sum.className = 'xp-sum';
+    sum.textContent = st.summary;
+    main.append(name, sum);
+
+    row.append(cb, main);
+    list.appendChild(row);
+    if(!empty) inputs.push(cb);
+  });
+
+  const disponiveis = inputs.length;
+  function refresh(){
+    const n = inputs.filter(i => i.checked).length;
+    countEl.textContent = `${n} de ${disponiveis} ${disponiveis === 1 ? 'disponível' : 'disponíveis'}`;
+    confirm.disabled = n === 0;
+    confirm.textContent = n === 0 ? 'Exportar' : `Exportar ${n}`;
+  }
+  inputs.forEach(i => i.addEventListener('change', refresh));
+  refresh();
+
+  if(!disponiveis){
+    countEl.textContent = 'nenhuma metodologia tem dados';
+    document.getElementById('xp-sub').textContent =
+      'Esta análise ainda não tem dados em nenhuma metodologia. Preencha alguma antes de exportar.';
+  }
+
+  back.classList.add('open');
+
+  return new Promise(resolve => {
+    function close(result){
+      back.classList.remove('open');
+      btnAll.removeEventListener('click', onAll);
+      btnNone.removeEventListener('click', onNone);
+      btnCancel.removeEventListener('click', onCancel);
+      confirm.removeEventListener('click', onConfirm);
+      back.removeEventListener('mousedown', onBackdrop);
+      document.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onAll(){ inputs.forEach(i => { i.checked = true; }); refresh(); }
+    function onNone(){ inputs.forEach(i => { i.checked = false; }); refresh(); }
+    function onCancel(){ close(null); }
+    function onConfirm(){
+      const picked = inputs.filter(i => i.checked).map(i => i.value);
+      if(picked.length) close(picked);
+    }
+    function onBackdrop(e){ if(e.target === back) close(null); }
+    function onKey(e){
+      if(e.key === 'Escape') close(null);
+      if(e.key === 'Enter' && !confirm.disabled){ e.preventDefault(); onConfirm(); }
+    }
+    btnAll.addEventListener('click', onAll);
+    btnNone.addEventListener('click', onNone);
+    btnCancel.addEventListener('click', onCancel);
+    confirm.addEventListener('click', onConfirm);
+    back.addEventListener('mousedown', onBackdrop);
+    document.addEventListener('keydown', onKey);
+  });
+}
+
 /* ================= Exportação Excel (.xlsx) =================
    Gera um relatório corporativo multi-aba com a identidade visual do app:
    capa, painel executivo da trilha e uma aba por metodologia, cada uma com
@@ -2007,7 +2214,7 @@ function xlContext(){
 }
 
 /* ---------- Aba 1: Capa ---------- */
-function xlSheetCapa(wb, ctx){
+function xlSheetCapa(wb, ctx, picked){
   const ws = wb.addWorksheet('Capa', {
     properties: { tabColor:{ argb: XL.ink } },
     views: [{ showGridLines:false }],
@@ -2051,12 +2258,14 @@ function xlSheetCapa(wb, ctx){
     .value = ctx.problem || '— não definido nesta análise —';
   ws.getRow(13).height = 22; ws.getRow(14).height = 22; ws.getRow(15).height = 22;
 
+  const nomesEscolhidos = ctx.stages.filter(s => picked.includes(s.view)).map(s => s.name);
   const meta = [
     ['Responsável',          ctx.author || '—'],
     ['Data de exportação',   `${ctx.dateLong} · ${ctx.time}`],
     ['Análise criada em',    ctx.meta.createdAt ? new Date(ctx.meta.createdAt).toLocaleDateString('pt-BR') : '—'],
     ['Identificador',        ctx.meta.id || currentId || '—'],
-    ['Metodologias usadas',  `${started} de 8`]
+    ['Metodologias usadas',  `${started} de 8`],
+    ['Abas neste arquivo',   `${nomesEscolhidos.length} · ${nomesEscolhidos.join(', ') || '—'}`]
   ];
   let r = 18;
   ws.mergeCells(`B17:H17`);
@@ -2087,7 +2296,7 @@ function xlSheetCapa(wb, ctx){
   r++;
   [
     'Painel — visão executiva: status de cada metodologia e o próximo passo sugerido.',
-    'Uma aba por metodologia, na ordem da trilha: VoC → Pareto → Ishikawa → 5 Porquês → FCA → 5W2H → PDCA → DMAIC.',
+    `Uma aba por metodologia, na ordem da trilha: ${nomesEscolhidos.join(' → ') || '(nenhuma selecionada)'}.`,
     'Cada aba traz uma nota explicando a ferramenta e como interpretar as colunas.'
   ].forEach(line => {
     ws.mergeCells(`B${r}:H${r}`);
@@ -2103,7 +2312,7 @@ function xlSheetCapa(wb, ctx){
 }
 
 /* ---------- Aba 2: Painel executivo ---------- */
-function xlSheetPainel(wb, ctx){
+function xlSheetPainel(wb, ctx, picked){
   const ws = xlSheet(wb, 'Painel', ctx, {
     tab: XL.copper, freeze: 9,
     columns: [ { width:5 }, { width:20 }, { width:18 }, { width:62 }, { width:26 } ]
@@ -2184,6 +2393,16 @@ function xlSheetPainel(wb, ctx){
     ws.getRow(row).height = 18;
     row++;
   });
+
+  // O painel mostra a trilha inteira; as abas seguem a escolha de quem exportou.
+  const dentro = ctx.stages.filter(s => picked.includes(s.view)).map(s => s.name);
+  const fora   = ctx.stages.filter(s => !picked.includes(s.view)).map(s => s.name);
+  row++;
+  ws.mergeCells(`A${row}:E${row}`);
+  xl(ws.getCell(`A${row}`), { color:XL.textSoft, size:9, italic:true })
+    .value = `Abas neste arquivo: ${dentro.join(', ') || 'nenhuma'}.` +
+             (fora.length ? ` Fora deste arquivo: ${fora.join(', ')}.` : '');
+  ws.getRow(row).height = 20;
   return ws;
 }
 
@@ -2532,7 +2751,29 @@ function xlSheetQuadro(wb, ctx, opts){
   return ws;
 }
 
-async function buildExcelWorkbook(ExcelJS, ctx){
+/* Mapa view -> função que cria a aba. Usado para respeitar a seleção do usuário. */
+const XL_SHEET_BY_VIEW = {
+  voc:        (wb, ctx) => xlSheetVoc(wb, ctx),
+  pareto:     (wb, ctx) => xlSheetPareto(wb, ctx),
+  ishikawa:   (wb, ctx) => xlSheetIshikawa(wb, ctx),
+  '5porques': (wb, ctx) => xlSheetPorques(wb, ctx),
+  fca:        (wb, ctx) => xlSheetFca(wb, ctx),
+  '5w2h':     (wb, ctx) => xlSheet5w2h(wb, ctx),
+  pdca:       (wb, ctx) => xlSheetQuadro(wb, ctx, {
+                sheetName:'PDCA', tab:XL.brass, items:pdca.items, stages:PDCA_STAGES,
+                kicker:'MELHORIA CONTÍNUA', title:'PDCA — Planejar, Fazer, Verificar, Agir',
+                note:'Ciclo para testar e consolidar uma solução já definida, girando até o processo estabilizar.',
+                footer:'Didática: o ciclo só fecha quando "Agir" padroniza o que deu certo (ou corrige o que não deu) — itens parados em "Fazer" são trabalho em aberto, não resultado.'
+              }),
+  dmaic:      (wb, ctx) => xlSheetQuadro(wb, ctx, {
+                sheetName:'DMAIC', tab:XL.steel, items:dmaic.items, stages:DMAIC_STAGES,
+                kicker:'PROJETO GUIADO POR DADOS', title:'DMAIC — Definir, Medir, Analisar, Melhorar, Controlar',
+                note:'Estrutura para problemas complexos. Diferente do PDCA, não é cíclico — é a espinha dorsal de um projeto completo de melhoria.',
+                footer:'Didática: sem a etapa "Medir" o DMAIC vira palpite. E sem "Controlar", o ganho evapora alguns meses depois.'
+              })
+};
+
+async function buildExcelWorkbook(ExcelJS, ctx, picked){
   const wb = new ExcelJS.Workbook();
   wb.creator = ctx.author ? `${ctx.author} · Metodologias` : 'Metodologias';
   wb.lastModifiedBy = 'Metodologias';
@@ -2545,30 +2786,22 @@ async function buildExcelWorkbook(ExcelJS, ctx){
   wb.keywords = 'VoC, Pareto, Ishikawa, 5 Porquês, FCA, 5W2H, PDCA, DMAIC';
   wb.description = 'Relatório gerado pelo app Metodologias — uma aba por metodologia, na ordem da trilha de análise.';
 
-  xlSheetCapa(wb, ctx);
-  xlSheetPainel(wb, ctx);
-  xlSheetVoc(wb, ctx);
-  xlSheetPareto(wb, ctx);
-  xlSheetIshikawa(wb, ctx);
-  xlSheetPorques(wb, ctx);
-  xlSheetFca(wb, ctx);
-  xlSheet5w2h(wb, ctx);
-  xlSheetQuadro(wb, ctx, {
-    sheetName:'PDCA', tab:XL.brass, items:pdca.items, stages:PDCA_STAGES,
-    kicker:'MELHORIA CONTÍNUA', title:'PDCA — Planejar, Fazer, Verificar, Agir',
-    note:'Ciclo para testar e consolidar uma solução já definida, girando até o processo estabilizar.',
-    footer:'Didática: o ciclo só fecha quando "Agir" padroniza o que deu certo (ou corrige o que não deu) — itens parados em "Fazer" são trabalho em aberto, não resultado.'
-  });
-  xlSheetQuadro(wb, ctx, {
-    sheetName:'DMAIC', tab:XL.steel, items:dmaic.items, stages:DMAIC_STAGES,
-    kicker:'PROJETO GUIADO POR DADOS', title:'DMAIC — Definir, Medir, Analisar, Melhorar, Controlar',
-    note:'Estrutura para problemas complexos. Diferente do PDCA, não é cíclico — é a espinha dorsal de um projeto completo de melhoria.',
-    footer:'Didática: sem a etapa "Medir" o DMAIC vira palpite. E sem "Controlar", o ganho evapora alguns meses depois.'
+  // Capa e Painel sempre entram: são a identidade e a visão geral do arquivo.
+  xlSheetCapa(wb, ctx, picked);
+  xlSheetPainel(wb, ctx, picked);
+  // As demais seguem a ordem da trilha, filtradas pela escolha do usuário.
+  ctx.stages.forEach(st => {
+    if(!picked.includes(st.view)) return;
+    const make = XL_SHEET_BY_VIEW[st.view];
+    if(make) make(wb, ctx);
   });
   return wb;
 }
 
 document.getElementById('btn-export-xlsx').addEventListener('click', async () => {
+  const picked = await openExportPicker('xlsx');
+  if(!picked) return;
+
   const statusEl = document.getElementById('status-analysis');
   const btn = document.getElementById('btn-export-xlsx');
   const originalLabel = btn.textContent;
@@ -2578,7 +2811,7 @@ document.getElementById('btn-export-xlsx').addEventListener('click', async () =>
   try{
     const ExcelJS = await loadExcelJS();
     const ctx = xlContext();
-    const wb = await buildExcelWorkbook(ExcelJS, ctx);
+    const wb = await buildExcelWorkbook(ExcelJS, ctx, picked);
     const buffer = await wb.xlsx.writeBuffer();
     const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
     const url = URL.createObjectURL(blob);
@@ -2589,7 +2822,7 @@ document.getElementById('btn-export-xlsx').addEventListener('click', async () =>
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    statusEl.textContent = 'relatório baixado (.xlsx) ✓';
+    statusEl.textContent = `relatório baixado (.xlsx) · ${picked.length} aba(s) ✓`;
   }catch(err){
     console.error(err);
     statusEl.textContent = 'não foi possível gerar o Excel: ' + (err && err.message ? err.message : 'erro desconhecido');
@@ -3645,13 +3878,13 @@ function pdfFillCover(ctx, docCode, fileName, included){
   });
 }
 
-function pdfFillToc(ctx, included, omitted){
+function pdfFillToc(ctx, included, semDados, desmarcadas){
   const list = document.getElementById('pt-list');
   list.innerHTML = '';
   if(!included.length){
     const li = document.createElement('li');
     li.className = 'pt-vazio';
-    li.textContent = 'Nenhuma metodologia desta análise tem dados registrados — este documento sai apenas com a capa e este sumário.';
+    li.textContent = 'Nenhuma metodologia foi incluída — este documento sai apenas com a capa e este sumário.';
     list.appendChild(li);
   }
   included.forEach((st, i) => {
@@ -3687,21 +3920,31 @@ function pdfFillToc(ctx, included, omitted){
     )
   );
 
-  document.getElementById('pt-omitted').textContent = omitted.length
-    ? `Omitidas por não ter dados nesta análise: ${omitted.map(s => s.name).join(', ')}.`
-    : '';
+  document.getElementById('pt-note').textContent =
+    'As ' + included.length + ' metodologia' + (included.length === 1 ? '' : 's') +
+    ' abaixo aparece' + (included.length === 1 ? '' : 'm') +
+    ' nesta ordem, cada uma começando em uma página nova. O conteúdo foi escolhido no momento da exportação.';
+
+  const notas = [];
+  if(desmarcadas.length) notas.push(`Não incluídas nesta versão do documento: ${desmarcadas.map(s => s.name).join(', ')}.`);
+  if(semDados.length)    notas.push(`Sem dados nesta análise: ${semDados.map(s => s.name).join(', ')}.`);
+  document.getElementById('pt-omitted').textContent = notas.join(' ');
 }
 
-document.getElementById('btn-export-pdf').addEventListener('click', () => {
+document.getElementById('btn-export-pdf').addEventListener('click', async () => {
+  const picked = await openExportPicker('pdf');
+  if(!picked) return;
+
   const ctx = xlContext();
   const docCode = pdfDocCode(ctx);
   const fileName = `analise-${slugify(ctx.name)}-${ctx.now.toISOString().slice(0, 10)}.pdf`;
 
-  const included = ctx.stages.filter(s => s.status !== 'vazia');
-  const omitted  = ctx.stages.filter(s => s.status === 'vazia');
+  const included    = ctx.stages.filter(s => picked.includes(s.view));
+  const semDados    = ctx.stages.filter(s => s.status === 'vazia');
+  const desmarcadas = ctx.stages.filter(s => s.status !== 'vazia' && !picked.includes(s.view));
 
   pdfFillCover(ctx, docCode, fileName, included);
-  pdfFillToc(ctx, included, omitted);
+  pdfFillToc(ctx, included, semDados, desmarcadas);
 
   // Guarda o estado da tela para devolver depois da impressão.
   const activeTab = document.querySelector('.tab-btn.active[data-view]');
