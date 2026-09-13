@@ -62,6 +62,14 @@ reads these directly.
 - **Regression sweep**: click all 8 sidebar tabs, confirm each renders and
   console stays clean. The handoff refactor touched every tool view's
   import/send button.
+- **Export PDF (dossiê)**: "Exportar dados" → "🖨️ PDF". Monta capa + sumário +
+  uma metodologia por página (só as com dados, na ordem da trilha — o handler
+  **reordena o DOM** e restaura no `afterprint`). `window.print()` trava a
+  automação: stube `window.print` e neutralize o fallback (`setTimeout` de
+  1500 ms) para o dossiê ficar montado e inspecionável. Para **ver** o layout
+  de impressão sem dialog, converta as regras na marra:
+  `for(const r of ss.cssRules) if(r.type===4 && /print/.test(r.media.mediaText)) r.media.mediaText='all'`.
+  Depois volte para `'print'` e dispare `afterprint` para testar o restore.
 - **Export .xlsx**: "Exportar dados" → "📊 Excel (.xlsx)". Lazy-loads ExcelJS
   4.4.0 from cdnjs on first click (needs network), builds a 10-sheet workbook
   (Capa, Painel, uma por metodologia) and downloads it. The pane sandboxes the

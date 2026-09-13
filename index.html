@@ -665,39 +665,234 @@
   .trilha-next .trilha-next-cap{ font-size:10px; text-transform:uppercase; letter-spacing:0.12em; color: var(--ink-soft); }
   .trilha-toast{ font-size:11.5px; color: var(--moss); flex-basis:100%; }
 
+/* ================= Documento impresso / PDF =================
+   Capa + sumário + uma metodologia por página. Tudo oculto na tela;
+   só ganha corpo dentro de @media print. */
+.print-cover, .print-toc, .print-sec-tag{ display:none; }
+
 @media print{
-  body{ background:#fff; padding: 10px; }
-  .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide, #view-trilha,
-  .icon-btn, .import-note, .dash-actions, .watermark{ display:none !important; }
-  .cat-card, .action-card, .pdca-card, .why-chain, .dash-card{ break-inside: avoid; }
-  input, textarea, select{ color:#000 !important; }
+  @page{ margin: 12mm; }
 
-  .print-cover{
-    display:flex !important;
-    flex-direction:column; align-items:center; justify-content:center;
-    width:100%; height:100vh; box-sizing:border-box; padding:60px;
-    background: var(--sidebar-bg); color: var(--sidebar-ink);
-    text-align:center; page-break-after: always;
+  /* O documento impresso usa sempre a paleta clara, mesmo com o app em tema
+     escuro na tela — papel preto é ilegível e gasta toner à toa. A capa e o
+     sumário têm o próprio fundo escuro, definidos adiante. */
+  :root, :root[data-theme="light"], :root[data-theme="dark"]{
+    --paper: #FFFFFF;
+    --paper-card: #FFFFFF;
+    --paper-raised: #FFFFFF;
+    --ink: #1A1511;
+    --ink-soft: #5C5348;
+    --rust: #6B3F23;
+    --rust-dark: #3D2415;
+    --moss: #6E5628;
+    --moss-bg: #F2ECDC;
+    --line: #DED6CA;
+    --line-strong: #B9AE9D;
+    --danger: #7A342A;
+    --danger-bg: #F6E7E3;
+    --teal: #4F4433;
+    --teal-bg: #EFEADF;
+    --steel: #8A7E6E;
+    --shadow-card: none;
+    --sidebar-bg: #0C0B0A;
+    --sidebar-ink: #E0D8CC;
+    --sidebar-ink-soft: #8B8175;
+    --sidebar-line: #262220;
+    --radius: 2px;
+    --hatch: none;
   }
-}
 
-.print-cover{ display:none; } /* só aparece na impressão/PDF */
-.print-cover-logo{ width:96px; height:96px; border-radius:20px; margin-bottom:28px; }
-.print-cover-eyebrow{
-  font-family:'Inter', sans-serif; font-size:13px; letter-spacing:0.16em;
-  text-transform:uppercase; color: var(--sidebar-ink-soft); margin:0 0 18px;
-}
-.print-cover-title{
-  font-family:'Archivo', sans-serif; font-weight:800; font-size:38px;
-  line-height:1.25; max-width:700px; margin:0 0 20px;
-}
-.print-cover-subtitle{
-  font-family:'Inter', sans-serif; font-size:15px; color: var(--sidebar-ink-soft);
-  margin: 0 0 46px;
-}
-.print-cover-meta{
-  font-family:'Inter', sans-serif; font-size:12.5px; color: var(--sidebar-ink-soft);
-  display:flex; flex-direction:column; gap:6px;
+  body{
+    background:#fff !important; padding:0; margin:0;
+    color: var(--ink) !important;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .cat-card, .action-card, .fca-card, .voc-card, .pdca-col, .pdca-card,
+  .why-chain, .problem-block, .summary, .pareto-table-card, .pareto-chart-card{
+    box-shadow:none !important; background:#fff !important;
+  }
+  .app-shell{ display:block; }
+  .sidebar, .sidebar-scrim, .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide,
+  .icon-btn, .import-note, .dash-actions, .watermark, .welcome-greeting,
+  #view-trilha, #auth-gate, #welcome-screen, .export-menu-wrap,
+  .flag-btn, .toggle-sub, .trilha-next{ display:none !important; }
+
+  /* O checkbox de "Concluída" não imprime estado — vira um selo que mostra
+     de fato se a ação está pendente ou concluída (vale p/ 5W2H e FCA). */
+  .done-toggle input, .done-toggle span{ display:none !important; }
+  .done-toggle::after{
+    content:'Pendente';
+    font-family:'Inter',sans-serif; font-size:8.5px; font-weight:600;
+    letter-spacing:0.12em; text-transform:uppercase;
+    color:#7A342A; border:1px solid #7A342A; padding:3px 9px;
+  }
+  .action-card.is-done .done-toggle::after{
+    content:'\2713  Concluída'; color:#4F4433; border-color:#4F4433; background:#F2ECDC;
+  }
+  .action-card.is-done{ opacity:1 !important; }
+  header{ display:none !important; }
+  .main-content{ padding:0 !important; }
+  .wrap{ max-width:none !important; }
+
+  .cat-card, .action-card, .pdca-card, .why-chain, .dash-card,
+  .fca-card, .voc-card, .pdca-col, .problem-block, .summary{ break-inside: avoid; }
+  input, textarea, select{ color:#000 !important; background:transparent !important; }
+  textarea{ height:auto !important; min-height:2.4em; overflow:visible !important; }
+
+  /* A espinha de peixe é desenhada em px a partir do layout da tela e não
+     reescala para a largura da página — na impressão saem as 6 categorias
+     com todas as causas, que é o conteúdo que importa arquivar. */
+  svg#bones{ display:none !important; }
+  .board{ margin-top: 8px !important; }
+  .rows{ gap: 18px !important; }
+  .row{ grid-template-columns: repeat(3, minmax(0,1fr)) !important; }
+
+  /* cada metodologia começa em página nova; a primeira emenda no sumário */
+  .view{ page-break-before: always; }
+  .view.print-sec-first{ page-break-before: auto; }
+  .view .section-head{ margin-top:0 !important; padding-top:0 !important; border-top:none !important; }
+
+  .print-sec-tag{
+    display:flex !important; justify-content:space-between; align-items:baseline;
+    font-family:'Inter', sans-serif; font-size:8.5px; letter-spacing:0.14em;
+    text-transform:uppercase; color:#6E6252;
+    border-bottom:1px solid #C7B79E; padding-bottom:5px; margin-bottom:16px;
+  }
+  .print-sec-tag b{ font-weight:600; color:#3D2415; letter-spacing:0.1em; }
+
+  /* ---- Capa ---- */
+  .print-cover, .print-toc{
+    display:flex !important; flex-direction:column;
+    box-sizing:border-box; page-break-after: always;
+    -webkit-print-color-adjust: exact; print-color-adjust: exact;
+  }
+  .print-cover{
+    min-height: 243mm; padding: 22mm 20mm 16mm;
+    background:#0C0B0A; color:#E0D8CC;
+    justify-content:space-between;
+    background-image: repeating-linear-gradient(45deg, rgba(237,227,211,0.028) 0 1px, transparent 1px 26px);
+  }
+  .pc-top{ display:flex; justify-content:space-between; align-items:flex-start; gap:20px; }
+  .pc-wordmark{
+    display:block; font-family:'Oswald','Archivo',sans-serif; font-weight:700;
+    font-size:19px; letter-spacing:0.34em; text-transform:uppercase; color:#ECE6DB;
+  }
+  .pc-rule{ display:block; width:46px; height:3px; background:#C2703A; margin:9px 0 10px; }
+  .pc-kicker{
+    display:block; font-family:'Inter',sans-serif; font-size:8.5px; letter-spacing:0.2em;
+    text-transform:uppercase; color:#E19A61;
+  }
+  .pc-doccode{
+    font-family:'Oswald','Archivo',sans-serif; font-size:11px; letter-spacing:0.16em;
+    color:#8B8175; border:1px solid #3A332C; padding:7px 11px; white-space:nowrap;
+  }
+
+  .pc-mid{ padding: 6mm 0 0; }
+  .pc-label{
+    font-family:'Inter',sans-serif; font-size:8px; letter-spacing:0.22em;
+    text-transform:uppercase; color:#8B8175; margin:0 0 7px;
+  }
+  .pc-title{
+    font-family:'Oswald','Archivo',sans-serif; font-weight:700; font-size:33px;
+    line-height:1.14; letter-spacing:0.015em; color:#ECE6DB; margin:0 0 11mm;
+    text-transform:none;
+  }
+  .pc-problem{
+    font-family:'Inter',sans-serif; font-size:13px; line-height:1.55; color:#ECE6DB;
+    background:#161412; border-left:3px solid #C2703A; padding:11px 14px; margin:0;
+  }
+
+  .pc-grid{ display:flex; gap:9mm; padding-top: 8mm; }
+  .pc-block{ flex:1; min-width:0; }
+  .pc-block-title{
+    font-family:'Inter',sans-serif; font-size:8px; letter-spacing:0.2em;
+    text-transform:uppercase; color:#E19A61; margin:0 0 9px;
+    border-bottom:1px solid #3A332C; padding-bottom:6px;
+  }
+  .pc-dl{ margin:0; font-family:'Inter',sans-serif; font-size:9.5px; }
+  .pc-dl div{ display:flex; gap:8px; padding:3.5px 0; }
+  .pc-dl dt{ color:#8B8175; flex:0 0 40%; }
+  .pc-dl dd{ margin:0; color:#ECE6DB; font-weight:500; flex:1; }
+
+  .pc-field{
+    display:flex; align-items:baseline; gap:8px;
+    font-family:'Inter',sans-serif; font-size:9.5px; color:#8B8175; padding:4px 0;
+  }
+  .pc-field i{ flex:1; border-bottom:1px solid #4A433B; font-style:normal; color:#E0D8CC; min-height:13px; }
+  .pc-file-label{
+    font-family:'Inter',sans-serif; font-size:8px; letter-spacing:0.16em;
+    text-transform:uppercase; color:#8B8175; margin:11px 0 5px;
+  }
+  .pc-filename{
+    display:block; font-family:'Consolas','Courier New',monospace; font-size:9px;
+    color:#E19A61; background:#161412; border:1px solid #3A332C;
+    padding:6px 8px; word-break:break-all;
+  }
+
+  .pc-sign{ display:flex; gap:9mm; padding-top: 9mm; }
+  .pc-sign-slot{ flex:1; }
+  .pc-sign-slot i{ display:block; border-bottom:1px solid #4A433B; height:11mm; }
+  .pc-sign-slot span{
+    display:block; font-family:'Inter',sans-serif; font-size:8.5px;
+    letter-spacing:0.1em; text-transform:uppercase; color:#8B8175; padding-top:6px;
+  }
+  .pc-sign-slot b{ color:#E0D8CC; font-weight:600; }
+
+  .pc-foot{
+    display:flex; justify-content:space-between; align-items:flex-end; gap:16px;
+    border-top:1px solid #262220; padding-top:8px;
+    font-family:'Inter',sans-serif; font-size:8px; color:#6E655C; letter-spacing:0.04em;
+  }
+
+  /* ---- Sumário ---- */
+  .print-toc{ min-height: 243mm; padding: 4mm 0 0; color:#211B15; }
+  .pt-kicker{
+    display:block; font-family:'Inter',sans-serif; font-size:8.5px; letter-spacing:0.22em;
+    text-transform:uppercase; color:#6B3F23; margin-bottom:7px;
+  }
+  .pt-title{
+    font-family:'Oswald','Archivo',sans-serif; font-weight:700; font-size:27px;
+    text-transform:uppercase; letter-spacing:0.04em; color:#211B15; margin:0 0 9px;
+  }
+  .pt-title::after{ content:''; display:block; width:46px; height:3px; background:#C2703A; margin-top:11px; }
+  .pt-note{
+    font-family:'Inter',sans-serif; font-size:10.5px; line-height:1.6; color:#6E6252;
+    max-width:150mm; margin:0 0 11mm;
+  }
+  .pt-list{ list-style:none; margin:0; padding:0; }
+  .pt-list li{
+    display:flex; align-items:baseline; gap:12px;
+    border-bottom:1px dotted #C7B79E; padding:9px 0;
+  }
+  .pt-num{
+    font-family:'Oswald','Archivo',sans-serif; font-size:12px; color:#6B3F23;
+    border:1px solid #C2703A; width:22px; height:22px; flex:0 0 22px;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .pt-name{
+    font-family:'Oswald','Archivo',sans-serif; font-size:13.5px; text-transform:uppercase;
+    letter-spacing:0.05em; color:#211B15; flex:0 0 42mm;
+  }
+  .pt-sum{ font-family:'Inter',sans-serif; font-size:10px; color:#6E6252; flex:1; }
+  .pt-badge{
+    font-family:'Inter',sans-serif; font-size:7.5px; letter-spacing:0.12em;
+    text-transform:uppercase; font-weight:600; padding:3px 7px; white-space:nowrap;
+  }
+  .pt-badge[data-s="ok"]{ color:#5C4A32; background:#F0E6D2; }
+  .pt-badge[data-s="andamento"]{ color:#6B3F23; background:#F4E4D5; }
+  .pt-progress{
+    margin-top: 11mm; border:1px solid #C7B79E; border-left:3px solid #C2703A;
+    padding:11px 14px; font-family:'Inter',sans-serif; font-size:10.5px; color:#211B15;
+  }
+  .pt-progress b{ font-family:'Oswald','Archivo',sans-serif; font-size:14px; color:#6B3F23; }
+  .pt-omitted{
+    margin-top:7mm; font-family:'Inter',sans-serif; font-size:9.5px;
+    color:#6E6252; font-style:italic;
+  }
+  .pt-vazio{
+    display:block !important; border-bottom:none !important;
+    font-family:'Inter',sans-serif; font-size:10.5px; font-style:italic; color:#6E6252;
+  }
 }
 
   .watermark{
@@ -849,6 +1044,62 @@
 <script src="js/storage-adapter.js"></script>
 </head>
 <body>
+
+<!-- Documento impresso: capa e sumário vêm antes de tudo, para abrirem o PDF. -->
+<div id="print-cover" class="print-cover">
+  <div class="pc-top">
+    <div>
+      <span class="pc-wordmark">Metodologias</span>
+      <span class="pc-rule"></span>
+      <span class="pc-kicker">Relatório de análise de causa e plano de ação</span>
+    </div>
+    <div class="pc-doccode" id="pc-doccode">MET-0000-0000</div>
+  </div>
+
+  <div class="pc-mid">
+    <p class="pc-label">Análise</p>
+    <h1 class="pc-title" id="print-cover-title">Título da análise</h1>
+    <p class="pc-label">Problema / efeito analisado</p>
+    <p class="pc-problem" id="pc-problem">—</p>
+  </div>
+
+  <div class="pc-grid">
+    <div class="pc-block">
+      <p class="pc-block-title">Ficha do documento</p>
+      <dl class="pc-dl" id="pc-ficha"></dl>
+    </div>
+    <div class="pc-block">
+      <p class="pc-block-title">Arquivamento</p>
+      <div class="pc-field"><span>Pasta / dossiê nº</span><i></i></div>
+      <div class="pc-field"><span>Localização física</span><i></i></div>
+      <div class="pc-field"><span>Arquivado em</span><i>&nbsp;&nbsp;&nbsp;&nbsp;/&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/</i></div>
+      <div class="pc-field"><span>Responsável pelo arquivo</span><i></i></div>
+      <p class="pc-file-label">Arquivo digital sugerido</p>
+      <code class="pc-filename" id="pc-filename">arquivo.pdf</code>
+    </div>
+  </div>
+
+  <div class="pc-sign">
+    <div class="pc-sign-slot"><i></i><span>Elaborado por <b id="pc-sign-author"></b></span></div>
+    <div class="pc-sign-slot"><i></i><span>Revisado por</span></div>
+    <div class="pc-sign-slot"><i></i><span>Aprovado por</span></div>
+  </div>
+
+  <div class="pc-foot">
+    <span>Gerado pelo app Metodologias · os dados desta análise ficam no navegador de quem exportou.</span>
+    <span id="pc-foot-date"></span>
+  </div>
+</div>
+
+<div id="print-toc" class="print-toc">
+  <span class="pt-kicker">Sumário</span>
+  <h2 class="pt-title">Conteúdo deste documento</h2>
+  <p class="pt-note">As metodologias abaixo aparecem nesta ordem, cada uma começando em uma página nova. Etapas sem nenhum dado registrado foram omitidas para manter o dossiê enxuto.</p>
+  <ol class="pt-list" id="pt-list"></ol>
+  <div class="pt-progress" id="pt-progress"></div>
+  <p class="pt-omitted" id="pt-omitted"></p>
+</div>
+
 
 <div id="auth-gate" class="welcome-screen" style="display:none">
   <div class="welcome-step welcome-form-panel" style="position:absolute; inset:0;">
@@ -1230,17 +1481,6 @@
 
     </div>
   </main>
-</div>
-
-<div id="print-cover" class="print-cover">
-  <img class="print-cover-logo" alt="">
-  <p class="print-cover-eyebrow">Metodologias</p>
-  <h1 class="print-cover-title" id="print-cover-title">Título da análise</h1>
-  <p class="print-cover-subtitle" id="print-cover-subtitle">Metodologia</p>
-  <div class="print-cover-meta">
-    <span id="print-cover-author"></span>
-    <span id="print-cover-date"></span>
-  </div>
 </div>
 
 <div class="watermark">Created by Anderson Timoteo</div>
@@ -3368,23 +3608,161 @@ document.getElementById('btn-import-pdca').addEventListener('click', () => {
     : 'Esses itens já estavam importados no diagrama.';
 });
 
+/* Dossiê em PDF: capa + sumário + uma metodologia por página, na ordem da trilha.
+   Monta o documento, imprime e devolve a tela ao estado em que estava. */
+
+function pdfDocCode(ctx){
+  const d = ctx.now;
+  const seq = String(ctx.meta.id || currentId || 'XXXX').replace(/[^a-z0-9]/gi, '').slice(0, 4).toUpperCase().padEnd(4, 'X');
+  return `MET-${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${seq}`;
+}
+
+function pdfFillCover(ctx, docCode, fileName, included){
+  document.getElementById('pc-doccode').textContent = docCode;
+  document.getElementById('print-cover-title').textContent = ctx.name;
+  document.getElementById('pc-problem').textContent = ctx.problem || '— não definido nesta análise —';
+  document.getElementById('pc-filename').textContent = fileName;
+  document.getElementById('pc-sign-author').textContent = ctx.author ? `· ${ctx.author}` : '';
+  document.getElementById('pc-foot-date').textContent = `${docCode} · emitido em ${ctx.dateShort} às ${ctx.time}`;
+
+  const ficha = [
+    ['Código',            docCode],
+    ['Revisão',           '01'],
+    ['Emitido em',        `${ctx.dateLong} · ${ctx.time}`],
+    ['Elaborado por',     ctx.author || '—'],
+    ['Análise criada em', ctx.meta.createdAt ? new Date(ctx.meta.createdAt).toLocaleDateString('pt-BR') : '—'],
+    ['Conteúdo',          `${included.length} metodologia${included.length === 1 ? '' : 's'}`],
+    ['Classificação',     'Uso interno']
+  ];
+  const dl = document.getElementById('pc-ficha');
+  dl.innerHTML = '';
+  ficha.forEach(([k, v]) => {
+    const wrap = document.createElement('div');
+    const dt = document.createElement('dt'); dt.textContent = k;
+    const dd = document.createElement('dd'); dd.textContent = v;
+    wrap.appendChild(dt); wrap.appendChild(dd);
+    dl.appendChild(wrap);
+  });
+}
+
+function pdfFillToc(ctx, included, omitted){
+  const list = document.getElementById('pt-list');
+  list.innerHTML = '';
+  if(!included.length){
+    const li = document.createElement('li');
+    li.className = 'pt-vazio';
+    li.textContent = 'Nenhuma metodologia desta análise tem dados registrados — este documento sai apenas com a capa e este sumário.';
+    list.appendChild(li);
+  }
+  included.forEach((st, i) => {
+    const li = document.createElement('li');
+    const num = document.createElement('span');
+    num.className = 'pt-num';
+    num.textContent = i + 1;
+    const name = document.createElement('span');
+    name.className = 'pt-name';
+    name.textContent = st.name;
+    const sum = document.createElement('span');
+    sum.className = 'pt-sum';
+    sum.textContent = st.summary;
+    const badge = document.createElement('span');
+    badge.className = 'pt-badge';
+    badge.dataset.s = st.status;
+    badge.textContent = st.status === 'ok' ? 'preenchida' : 'em andamento';
+    li.append(num, name, sum, badge);
+    list.appendChild(li);
+  });
+
+  const started = ctx.stages.filter(s => s.status !== 'vazia').length;
+  const k = ctx.counts;
+  const prog = document.getElementById('pt-progress');
+  prog.innerHTML = '';
+  const b = document.createElement('b');
+  b.textContent = `${started}/8`;
+  prog.append(
+    b,
+    document.createTextNode(
+      ` etapas da trilha iniciadas · ${k.causes} causa(s) mapeada(s) · ${k.roots} causa(s) raiz confirmada(s) · ` +
+      `${plan.items.length} ação(ões) no plano, ${k.planDone} concluída(s).`
+    )
+  );
+
+  document.getElementById('pt-omitted').textContent = omitted.length
+    ? `Omitidas por não ter dados nesta análise: ${omitted.map(s => s.name).join(', ')}.`
+    : '';
+}
+
 document.getElementById('btn-export-pdf').addEventListener('click', () => {
-  const meta = analyses.find(a => a.id === currentId);
+  const ctx = xlContext();
+  const docCode = pdfDocCode(ctx);
+  const fileName = `analise-${slugify(ctx.name)}-${ctx.now.toISOString().slice(0, 10)}.pdf`;
+
+  const included = ctx.stages.filter(s => s.status !== 'vazia');
+  const omitted  = ctx.stages.filter(s => s.status === 'vazia');
+
+  pdfFillCover(ctx, docCode, fileName, included);
+  pdfFillToc(ctx, included, omitted);
+
+  // Guarda o estado da tela para devolver depois da impressão.
   const activeTab = document.querySelector('.tab-btn.active[data-view]');
-  const metodologia = activeTab ? activeTab.textContent.replace(/[^\p{L}0-9 ]/gu, '').trim() : '';
+  const prevView = activeTab ? activeTab.dataset.view : 'trilha';
+  const wrap = document.querySelector('.main-content .wrap');
+  const originalOrder = Array.from(wrap.children);
+  const tags = [];
 
-  document.getElementById('print-cover-title').textContent =
-    meta ? meta.name : (document.getElementById('app-title-h1').textContent || 'Análise');
-  document.getElementById('print-cover-subtitle').textContent =
-    metodologia ? `Relatório · ${metodologia}` : 'Relatório de análise';
+  document.querySelectorAll('.view').forEach(v => { v.style.display = 'none'; });
 
-  const greetEl = document.getElementById('user-greeting');
-  const authorName = greetEl && greetEl.textContent ? greetEl.textContent.split('·')[0].replace('Olá,', '').trim() : '';
-  document.getElementById('print-cover-author').textContent = authorName ? `Preparado por ${authorName}` : '';
-  document.getElementById('print-cover-date').textContent =
-    new Date().toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' });
+  // A ordem impressa é a ordem do DOM — reordena as seções conforme a trilha.
+  included.forEach((st, i) => {
+    const el = document.getElementById('view-' + st.view);
+    if(!el) return;
+    el.style.display = '';
+    if(i === 0) el.classList.add('print-sec-first');
+
+    const tag = document.createElement('div');
+    tag.className = 'print-sec-tag';
+    const left = document.createElement('span');
+    left.innerHTML = '';
+    const strong = document.createElement('b');
+    strong.textContent = `${i + 1}. ${st.name}`;
+    left.append(strong, document.createTextNode(`  ·  ${ctx.name}`));
+    const right = document.createElement('span');
+    right.textContent = `${docCode}  ·  ${i + 1} de ${included.length}`;
+    tag.append(left, right);
+    el.insertBefore(tag, el.firstChild);
+    tags.push(tag);
+
+    wrap.appendChild(el);
+  });
+
+  // O gráfico de Pareto é SVG com viewBox e escala sozinho, mas as cores dele
+  // são lidas dos tokens no momento do desenho — com o app em tema escuro sairiam
+  // claras demais no papel branco. Fixa a paleta de impressão no :root (inline,
+  // vence o @media print) e redesenha; o restore() devolve os tokens depois.
+  // O Ishikawa é desenhado em px a partir do layout da tela e sai fora de escala
+  // na impressão — a grade de categorias, que é o conteúdo, continua saindo.
+  const PRINT_CHART_VARS = {
+    '--ink':'#1A1511', '--ink-soft':'#5C5348', '--line':'#DED6CA', '--line-strong':'#B9AE9D',
+    '--rust':'#6B3F23', '--moss':'#6E5628', '--danger':'#7A342A', '--steel':'#8A7E6E'
+  };
+  Object.entries(PRINT_CHART_VARS).forEach(([k, v]) => document.documentElement.style.setProperty(k, v));
+  if(included.some(s => s.view === 'pareto')) renderParetoChart();
+
+  function restore(){
+    tags.forEach(t => t.remove());
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('print-sec-first'));
+    Object.keys(PRINT_CHART_VARS).forEach(k => document.documentElement.style.removeProperty(k));
+    originalOrder.forEach(el => wrap.appendChild(el));
+    switchView(prevView);
+    renderParetoChart();
+  }
+  window.addEventListener('afterprint', restore, { once:true });
 
   window.print();
+  // Fallback: navegadores que não disparam afterprint (ou o disparam tarde demais).
+  setTimeout(() => {
+    if(document.querySelector('.print-sec-tag')) restore();
+  }, 1500);
 });
 /* ================= FCA (Fato, Causa, Ação) ================= */
 let fcaSaveTimer = null;
