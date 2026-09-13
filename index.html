@@ -983,6 +983,7 @@
           <div class="export-menu-wrap">
   <button class="ghost archive-btn" id="btn-export-menu-toggle">Exportar dados</button>
   <div id="export-menu" class="export-menu" style="display:none">
+    <button class="export-menu-item" id="btn-export-xlsx">📊 Excel (.xlsx)</button>
     <button class="export-menu-item" id="btn-archive-analysis">📄 SQL</button>
     <button class="export-menu-item" id="btn-export-pdf">🖨️ PDF</button>
   </div>
@@ -1581,6 +1582,782 @@ document.getElementById('btn-archive-analysis').addEventListener('click', () => 
   const statusEl = document.getElementById('status-analysis');
   statusEl.textContent = 'análise arquivada e baixada (.sql) ✓';
   setTimeout(() => { statusEl.textContent = ''; }, 4000);
+});
+
+/* ================= Exportação Excel (.xlsx) =================
+   Gera um relatório corporativo multi-aba com a identidade visual do app:
+   capa, painel executivo da trilha e uma aba por metodologia, cada uma com
+   faixa de marca, nota didática, tabela formatada e rodapé de impressão.
+   A biblioteca (ExcelJS, ~950 KB) só é baixada quando o usuário pede o Excel. */
+
+const EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+let excelJsLoader = null;
+
+function loadExcelJS(){
+  if(window.ExcelJS) return Promise.resolve(window.ExcelJS);
+  if(excelJsLoader) return excelJsLoader;
+  excelJsLoader = new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = EXCELJS_URL;
+    s.onload = () => window.ExcelJS
+      ? resolve(window.ExcelJS)
+      : reject(new Error('A biblioteca de Excel carregou mas não inicializou.'));
+    s.onerror = () => { excelJsLoader = null; reject(new Error('Não foi possível baixar a biblioteca de Excel. Verifique sua conexão.')); };
+    document.head.appendChild(s);
+  });
+  return excelJsLoader;
+}
+
+/* Paleta do relatório — espelha os tokens do tema escuro industrial do app.
+   Chrome (capa, faixas, cabeçalhos) escuro; corpo de dados claro, para o
+   arquivo continuar legível na tela e na impressão. */
+const XL = {
+  ink:       'FF12100F',
+  inkSoft:   'FF1C1A18',
+  graphite:  'FF2A2622',
+  steel:     'FF6E7176',
+  copper:    'FFC2703A',
+  copperLt:  'FFE19A61',
+  copperBg:  'FFF7E8DB',
+  brass:     'FFB79A5B',
+  brassDk:   'FF7A6528',
+  brassBg:   'FFF3EDDB',
+  danger:    'FFD5654C',
+  dangerBg:  'FFFAE6E1',
+  paper:     'FFFFFFFF',
+  paperAlt:  'FFF8F5F0',
+  paperWarm: 'FFEFEAE2',
+  line:      'FFDED6CA',
+  textLt:    'FFECE6DB',
+  textMut:   'FF9C9488',
+  textDk:    'FF231F1C',
+  textSoft:  'FF6E6559'
+};
+const XL_FONT = 'Calibri';
+
+const XL_STATUS = {
+  vazia:     { label:'Não iniciada', color:XL.steel,   fill:XL.paperWarm },
+  andamento: { label:'Em andamento', color:XL.copper,  fill:XL.copperBg },
+  ok:        { label:'Preenchida',   color:XL.brassDk, fill:XL.brassBg }
+};
+
+function xl(cell, o){
+  o = o || {};
+  if(o.fill) cell.fill = { type:'pattern', pattern:'solid', fgColor:{ argb:o.fill } };
+  cell.font = {
+    name: XL_FONT,
+    size: o.size || 10,
+    bold: !!o.bold,
+    italic: !!o.italic,
+    strike: !!o.strike,
+    color: { argb: o.color || XL.textDk }
+  };
+  cell.alignment = {
+    vertical: o.v || 'middle',
+    horizontal: o.h || 'left',
+    wrapText: o.wrap !== false,
+    indent: o.indent === undefined ? 0 : o.indent
+  };
+  if(o.border) cell.border = o.border;
+  if(o.numFmt) cell.numFmt = o.numFmt;
+  return cell;
+}
+
+function xlHair(){ return { bottom:{ style:'hair', color:{ argb:XL.line } } }; }
+
+function colLetter(n){
+  let s = '';
+  while(n > 0){ const m = (n - 1) % 26; s = String.fromCharCode(65 + m) + s; n = Math.floor((n - 1) / 26); }
+  return s;
+}
+
+/* Faixa de marca no topo de cada aba: kicker + título + nota didática + régua cobre. */
+function xlBand(ws, lastCol, kicker, title, note){
+  const L = colLetter(lastCol);
+  for(let r = 1; r <= 4; r++){
+    ws.mergeCells(`A${r}:${L}${r}`);
+    for(let c = 1; c <= lastCol; c++) xl(ws.getRow(r).getCell(c), { fill: r === 4 ? XL.copper : XL.ink });
+  }
+  xl(ws.getCell('A1'), { fill:XL.ink, color:XL.copperLt, size:8,  bold:true,   indent:1 }).value = kicker;
+  xl(ws.getCell('A2'), { fill:XL.ink, color:XL.textLt,   size:18, bold:true,   indent:1 }).value = title;
+  xl(ws.getCell('A3'), { fill:XL.ink, color:XL.textMut,  size:9,  italic:true, indent:1 }).value = note;
+  ws.getRow(1).height = 15;
+  ws.getRow(2).height = 26;
+  ws.getRow(3).height = 30;
+  ws.getRow(4).height = 4;
+  ws.getRow(5).height = 7;
+}
+
+function xlTableHead(ws, rowIdx, headers){
+  const row = ws.getRow(rowIdx);
+  headers.forEach((h, i) => {
+    xl(row.getCell(i + 1), {
+      fill: XL.graphite, color: XL.copperLt, size: 9, bold: true,
+      h: h.align || 'left', indent: 1,
+      border: { bottom:{ style:'medium', color:{ argb:XL.copper } } }
+    }).value = String(h.label).toUpperCase();
+  });
+  row.height = 24;
+  return rowIdx + 1;
+}
+
+function xlEmpty(ws, rowIdx, lastCol, msg){
+  ws.mergeCells(`A${rowIdx}:${colLetter(lastCol)}${rowIdx}`);
+  xl(ws.getCell(`A${rowIdx}`), { fill:XL.paperAlt, color:XL.textSoft, italic:true, indent:1, h:'left' }).value = msg;
+  ws.getRow(rowIdx).height = 26;
+  return rowIdx + 1;
+}
+
+/* Linha de agrupamento (categoria do Ishikawa, etapa do PDCA/DMAIC…). */
+function xlGroupRow(ws, rowIdx, lastCol, text, accent){
+  ws.mergeCells(`A${rowIdx}:${colLetter(lastCol)}${rowIdx}`);
+  for(let c = 1; c <= lastCol; c++) xl(ws.getRow(rowIdx).getCell(c), { fill: XL.paperWarm });
+  xl(ws.getCell(`A${rowIdx}`), {
+    fill: XL.paperWarm, color: accent || XL.textDk, size: 10, bold: true, indent: 1,
+    border: { top:{ style:'thin', color:{ argb:accent || XL.line } } }
+  }).value = String(text).toUpperCase();
+  ws.getRow(rowIdx).height = 20;
+  return rowIdx + 1;
+}
+
+function xlFooterNote(ws, rowIdx, lastCol, text){
+  ws.mergeCells(`A${rowIdx}:${colLetter(lastCol)}${rowIdx}`);
+  xl(ws.getCell(`A${rowIdx}`), { color:XL.textSoft, size:8, italic:true, indent:1 }).value = text;
+  ws.getRow(rowIdx).height = 22;
+}
+
+function xlSheet(wb, name, ctx, opts){
+  const ws = wb.addWorksheet(name, {
+    properties: { tabColor:{ argb: opts.tab || XL.copper }, defaultRowHeight: 16 },
+    views: [{ showGridLines:false, state:'frozen', ySplit: opts.freeze || 6 }],
+    pageSetup: {
+      paperSize: 9,
+      orientation: opts.orientation || 'landscape',
+      fitToPage: true, fitToWidth: 1, fitToHeight: 0,
+      horizontalCentered: true,
+      margins: { left:0.4, right:0.4, top:0.6, bottom:0.6, header:0.3, footer:0.3 }
+    },
+    headerFooter: {
+      oddFooter: `&L&8Metodologias · ${ctx.name.replace(/&/g,'&&')}&C&8&P de &N&R&8${ctx.dateShort}`
+    }
+  });
+  ws.columns = opts.columns;
+  return ws;
+}
+
+function xlContext(){
+  const meta = analyses.find(a => a.id === currentId) || {};
+  const greetEl = document.getElementById('user-greeting');
+  const author = (greetEl && greetEl.textContent)
+    ? greetEl.textContent.split('·')[0].replace('Olá,', '').trim()
+    : '';
+  const now = new Date();
+  return {
+    meta,
+    name: (meta.name || 'Análise sem nome').trim(),
+    problem: (state.problem || '').trim(),
+    author,
+    now,
+    dateLong: now.toLocaleDateString('pt-BR', { day:'2-digit', month:'long', year:'numeric' }),
+    dateShort: now.toLocaleDateString('pt-BR'),
+    time: now.toLocaleTimeString('pt-BR', { hour:'2-digit', minute:'2-digit' }),
+    stages: trilhaStages(),
+    counts: trilhaCounts()
+  };
+}
+
+/* ---------- Aba 1: Capa ---------- */
+function xlSheetCapa(wb, ctx){
+  const ws = wb.addWorksheet('Capa', {
+    properties: { tabColor:{ argb: XL.ink } },
+    views: [{ showGridLines:false }],
+    pageSetup: { paperSize:9, orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:1,
+                 margins:{ left:0.3, right:0.3, top:0.3, bottom:0.3, header:0, footer:0 } }
+  });
+  ws.columns = [
+    { width:3 }, { width:22 }, { width:4 }, { width:26 }, { width:16 },
+    { width:16 }, { width:16 }, { width:14 }, { width:3 }
+  ];
+
+  const LAST = 9, ROWS = 40;
+  for(let r = 1; r <= ROWS; r++){
+    for(let c = 1; c <= LAST; c++) xl(ws.getRow(r).getCell(c), { fill: XL.ink });
+    ws.getRow(r).height = 16;
+  }
+
+  const started = ctx.stages.filter(s => s.status !== 'vazia').length;
+
+  ws.mergeCells('B3:H3');
+  xl(ws.getCell('B3'), { fill:XL.ink, color:XL.textLt, size:16, bold:true }).value = 'M E T O D O L O G I A S';
+  ws.getRow(3).height = 26;
+
+  ws.mergeCells('B4:C4');
+  xl(ws.getCell('B4'), { fill:XL.copper }).value = '';
+  xl(ws.getRow(4).getCell(3), { fill:XL.copper });
+  ws.getRow(4).height = 4;
+
+  ws.mergeCells('B6:H6');
+  xl(ws.getCell('B6'), { fill:XL.ink, color:XL.copperLt, size:8, bold:true }).value = 'RELATÓRIO DE ANÁLISE DE CAUSA E PLANO DE AÇÃO';
+  ws.getRow(6).height = 15;
+
+  ws.mergeCells('B8:H10');
+  xl(ws.getCell('B8'), { fill:XL.ink, color:XL.textLt, size:28, bold:true, v:'top' }).value = ctx.name;
+  ws.getRow(8).height = 34; ws.getRow(9).height = 34; ws.getRow(10).height = 10;
+
+  ws.mergeCells('B12:H12');
+  xl(ws.getCell('B12'), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'PROBLEMA / EFEITO ANALISADO';
+  ws.mergeCells('B13:H15');
+  xl(ws.getCell('B13'), { fill:XL.inkSoft, color:XL.textLt, size:13, v:'middle', indent:1 })
+    .value = ctx.problem || '— não definido nesta análise —';
+  ws.getRow(13).height = 22; ws.getRow(14).height = 22; ws.getRow(15).height = 22;
+
+  const meta = [
+    ['Responsável',          ctx.author || '—'],
+    ['Data de exportação',   `${ctx.dateLong} · ${ctx.time}`],
+    ['Análise criada em',    ctx.meta.createdAt ? new Date(ctx.meta.createdAt).toLocaleDateString('pt-BR') : '—'],
+    ['Identificador',        ctx.meta.id || currentId || '—'],
+    ['Metodologias usadas',  `${started} de 8`]
+  ];
+  let r = 18;
+  ws.mergeCells(`B17:H17`);
+  xl(ws.getCell('B17'), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'FICHA DA ANÁLISE';
+  meta.forEach(([k, v]) => {
+    xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:9 }).value = k;
+    ws.mergeCells(`D${r}:H${r}`);
+    xl(ws.getCell(`D${r}`), { fill:XL.ink, color:XL.textLt, size:10, bold:true }).value = v;
+    ws.getRow(r).height = 19;
+    r++;
+  });
+
+  r += 1;
+  ws.mergeCells(`B${r}:H${r}`);
+  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'PROGRESSO DA TRILHA';
+  r++;
+  ws.mergeCells(`B${r}:E${r}`);
+  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.copper, size:14, bold:true })
+    .value = '█'.repeat(started) + '░'.repeat(8 - started);
+  ws.mergeCells(`F${r}:H${r}`);
+  xl(ws.getCell(`F${r}`), { fill:XL.ink, color:XL.textLt, size:10 })
+    .value = `${started}/8 etapas iniciadas`;
+  ws.getRow(r).height = 22;
+
+  r += 2;
+  ws.mergeCells(`B${r}:H${r}`);
+  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'COMO LER ESTE ARQUIVO';
+  r++;
+  [
+    'Painel — visão executiva: status de cada metodologia e o próximo passo sugerido.',
+    'Uma aba por metodologia, na ordem da trilha: VoC → Pareto → Ishikawa → 5 Porquês → FCA → 5W2H → PDCA → DMAIC.',
+    'Cada aba traz uma nota explicando a ferramenta e como interpretar as colunas.'
+  ].forEach(line => {
+    ws.mergeCells(`B${r}:H${r}`);
+    xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textLt, size:9, indent:1 }).value = '›  ' + line;
+    ws.getRow(r).height = 17;
+    r++;
+  });
+
+  ws.mergeCells('B38:H38');
+  xl(ws.getCell('B38'), { fill:XL.ink, color:XL.textMut, size:8, italic:true })
+    .value = 'Gerado automaticamente pelo app Metodologias · os dados da análise permanecem no navegador de quem exportou.';
+  return ws;
+}
+
+/* ---------- Aba 2: Painel executivo ---------- */
+function xlSheetPainel(wb, ctx){
+  const ws = xlSheet(wb, 'Painel', ctx, {
+    tab: XL.copper, freeze: 9,
+    columns: [ { width:5 }, { width:20 }, { width:18 }, { width:62 }, { width:26 } ]
+  });
+  xlBand(ws, 5, 'PAINEL EXECUTIVO', 'Trilha da análise',
+    'Cada metodologia responde a uma pergunta diferente. A trilha vai da voz do cliente até o plano de ação executado.');
+
+  const k = ctx.counts;
+  const started = ctx.stages.filter(s => s.status !== 'vazia').length;
+  const kpis = [
+    ['Etapas iniciadas', `${started}/8`],
+    ['Causas mapeadas',  k.causes],
+    ['Causas raiz',      k.roots],
+    ['Ações no plano',   plan.items.length],
+    ['Ações concluídas', k.planDone]
+  ];
+  let row = 6;
+  kpis.forEach((kp, i) => {
+    const c = i + 1;
+    xl(ws.getRow(row).getCell(c),     { fill:XL.graphite, color:XL.copperLt, size:8, bold:true, h:'center' }).value = String(kp[0]).toUpperCase();
+    xl(ws.getRow(row + 1).getCell(c), { fill:XL.inkSoft,  color:XL.textLt,  size:18, bold:true, h:'center',
+                                        border:{ bottom:{ style:'medium', color:{ argb:XL.copper } } } }).value = kp[1];
+  });
+  ws.getRow(row).height = 18;
+  ws.getRow(row + 1).height = 34;
+  ws.getRow(row + 2).height = 10;
+
+  row = 9;
+  row = xlTableHead(ws, row, [
+    { label:'#', align:'center' }, { label:'Metodologia' }, { label:'Status' },
+    { label:'O que já existe nesta análise' }, { label:'Para que serve' }
+  ]);
+
+  const PURPOSE = {
+    'VoC':        'Ouvir o cliente e agrupar a dor',
+    'Pareto':     'Descobrir os poucos vitais (80/20)',
+    'Ishikawa':   'Levantar causas possíveis (6M)',
+    '5 Porquês':  'Cavar até a causa raiz',
+    'FCA':        'Reagir a um desvio pontual',
+    '5W2H':       'Transformar causa em plano de ação',
+    'PDCA':       'Rodar o ciclo e padronizar',
+    'DMAIC':      'Projeto completo guiado por dados'
+  };
+
+  ctx.stages.forEach((st, i) => {
+    const bg = (i % 2) ? XL.paperAlt : XL.paper;
+    const sty = XL_STATUS[st.status];
+    xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, bold:true, h:'center', border:xlHair() }).value = i + 1;
+    xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = st.name;
+    xl(ws.getRow(row).getCell(3), { fill:sty.fill, color:sty.color, bold:true, size:9, h:'center', border:xlHair() }).value = sty.label;
+    xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.textSoft, indent:1, border:xlHair() }).value = st.summary;
+    xl(ws.getRow(row).getCell(5), { fill:bg, color:XL.textSoft, italic:true, indent:1, border:xlHair() }).value = PURPOSE[st.name] || '';
+    ws.getRow(row).height = 20;
+    row++;
+  });
+
+  const pending = ctx.stages.find(s => s.status === 'andamento') || ctx.stages.find(s => s.status === 'vazia');
+  row++;
+  ws.mergeCells(`A${row}:E${row}`);
+  xl(ws.getCell(`A${row}`), { fill:XL.copperBg, color:XL.textDk, bold:true, indent:1,
+                              border:{ left:{ style:'thick', color:{ argb:XL.copper } } } })
+    .value = pending
+      ? `PRÓXIMO PASSO  ›  ${pending.status === 'vazia' ? 'começar' : 'continuar'} ${pending.name}`
+      : 'PRÓXIMO PASSO  ›  todas as etapas têm dados — revise o plano e gire o PDCA.';
+  ws.getRow(row).height = 24;
+
+  row += 2;
+  xl(ws.getCell(`A${row}`), { color:XL.textMut, size:8, bold:true }).value = 'LEGENDA';
+  row++;
+  [['Preenchida','ok'], ['Em andamento','andamento'], ['Não iniciada','vazia']].forEach(([, key]) => {
+    const s = XL_STATUS[key];
+    xl(ws.getRow(row).getCell(1), { fill:s.fill, color:s.color, bold:true, size:9, h:'center' }).value = s.label;
+    ws.mergeCells(`B${row}:E${row}`);
+    xl(ws.getCell(`B${row}`), { color:XL.textSoft, size:9, indent:1 }).value =
+      key === 'ok' ? 'A etapa tem dados suficientes para sustentar uma decisão.'
+      : key === 'andamento' ? 'Começou, mas ainda falta informação para concluir.'
+      : 'Nenhum dado registrado nesta análise.';
+    ws.getRow(row).height = 18;
+    row++;
+  });
+  return ws;
+}
+
+/* ---------- VoC ---------- */
+function xlSheetVoc(wb, ctx){
+  const ws = xlSheet(wb, 'VoC', ctx, {
+    tab: XL.brass,
+    columns: [ { width:5 }, { width:70 }, { width:22 }, { width:16 } ]
+  });
+  xlBand(ws, 4, 'VOZ DO CLIENTE', 'VoC — Voice of Customer',
+    'Comentários reais de clientes, classificados por categoria e sentimento. As contagens por categoria alimentam o Pareto.');
+  let row = xlTableHead(ws, 6, [
+    { label:'#', align:'center' }, { label:'Comentário do cliente' }, { label:'Categoria' }, { label:'Sentimento', align:'center' }
+  ]);
+
+  if(!voc.entries.length){
+    row = xlEmpty(ws, row, 4, 'Nenhum feedback registrado nesta análise.');
+  } else {
+    const SENT = {
+      positivo: { color:XL.brassDk, fill:XL.brassBg,  label:'Positivo' },
+      neutro:   { color:XL.steel,   fill:XL.paperWarm, label:'Neutro'   },
+      negativo: { color:XL.danger,  fill:XL.dangerBg,  label:'Negativo' }
+    };
+    voc.entries.forEach((e, i) => {
+      const bg = (i % 2) ? XL.paperAlt : XL.paper;
+      const s = SENT[e.sentiment] || SENT.neutro;
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = i + 1;
+      xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair() }).value = e.comment || '—';
+      xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, color:XL.copper, indent:1, border:xlHair() }).value = e.category || '(sem categoria)';
+      xl(ws.getRow(row).getCell(4), { fill:s.fill, color:s.color, bold:true, size:9, h:'center', border:xlHair() }).value = s.label;
+      ws.getRow(row).height = 30;
+      row++;
+    });
+    ws.autoFilter = `A6:D6`;
+
+    const counts = {};
+    voc.entries.forEach(e => { const c = (e.category || '').trim(); if(c) counts[c] = (counts[c] || 0) + 1; });
+    const cats = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+    if(cats.length){
+      row++;
+      row = xlGroupRow(ws, row, 4, 'Contagem por categoria — envie estes números para o Pareto', XL.copper);
+      cats.forEach((c, i) => {
+        const bg = (i % 2) ? XL.paperAlt : XL.paper;
+        xl(ws.getRow(row).getCell(1), { fill:bg, border:xlHair() }).value = '';
+        xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair() }).value = c;
+        xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, h:'left', indent:1, border:xlHair() }).value = counts[c];
+        xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.copper, h:'left', border:xlHair() }).value = '█'.repeat(Math.min(counts[c], 12));
+        ws.getRow(row).height = 18;
+        row++;
+      });
+    }
+  }
+  xlFooterNote(ws, row + 1, 4, 'Didática: categoria = "tipo de problema". O sentimento ajuda a separar elogio de dor real — só a dor vira prioridade no Pareto.');
+  return ws;
+}
+
+/* ---------- Pareto ---------- */
+function xlSheetPareto(wb, ctx){
+  const ws = xlSheet(wb, 'Pareto', ctx, {
+    tab: XL.copper,
+    columns: [ { width:8 }, { width:44 }, { width:14 }, { width:13 }, { width:15 }, { width:26 }, { width:20 } ]
+  });
+  xlBand(ws, 7, 'PRIORIZAÇÃO 80/20', 'Gráfico de Pareto',
+    'Ordenado do maior para o menor. Os itens que somam os primeiros 80% do total são os "poucos vitais" — ataque esses primeiro.');
+  let row = xlTableHead(ws, 6, [
+    { label:'Ordem', align:'center' }, { label:'Problema' }, { label:'Valor', align:'right' },
+    { label:'% do total', align:'right' }, { label:'% acumulado', align:'right' },
+    { label:'Peso relativo' }, { label:'Classificação', align:'center' }
+  ]);
+
+  const valid = pareto.items.filter(it => (it.problem || '').trim() !== '' || (Number(it.value) || 0) > 0);
+  const total = valid.reduce((s, it) => s + (Number(it.value) || 0), 0);
+
+  if(!valid.length || total <= 0){
+    row = xlEmpty(ws, row, 7, 'Nenhum problema com valor registrado nesta análise.');
+  } else {
+    const sorted = [...valid].sort((a, b) => (Number(b.value) || 0) - (Number(a.value) || 0));
+    let cum = 0, cutoff = false, vitalCount = 0, vitalCum = 0;
+    sorted.forEach((it, i) => {
+      const val = Number(it.value) || 0;
+      cum += val;
+      const pct = val / total;
+      const cumPct = cum / total;
+      const isVital = !cutoff;
+      if(isVital){ vitalCount++; vitalCum = cumPct; }
+      if(cumPct >= 0.8) cutoff = true;
+      const bg = isVital ? XL.copperBg : ((i % 2) ? XL.paperAlt : XL.paper);
+      const accent = isVital ? { left:{ style:'thick', color:{ argb:XL.copper } } } : {};
+
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, bold:true, h:'center', border:Object.assign({}, xlHair(), accent) }).value = i + 1;
+      xl(ws.getRow(row).getCell(2), { fill:bg, bold:isVital, indent:1, border:xlHair() }).value = it.problem || '(sem nome)';
+      xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, h:'right', indent:1, border:xlHair(), numFmt:'#,##0.##' }).value = val;
+      xl(ws.getRow(row).getCell(4), { fill:bg, h:'right', indent:1, border:xlHair(), numFmt:'0.0%' }).value = pct;
+      xl(ws.getRow(row).getCell(5), { fill:bg, h:'right', indent:1, bold:true, color: isVital ? XL.copper : XL.textSoft, border:xlHair(), numFmt:'0.0%' }).value = cumPct;
+      xl(ws.getRow(row).getCell(6), { fill:bg, color: isVital ? XL.copper : XL.steel, border:xlHair() }).value = '█'.repeat(Math.max(1, Math.round(pct * 40)));
+      xl(ws.getRow(row).getCell(7), { fill:bg, color: isVital ? XL.copper : XL.steel, bold:true, size:9, h:'center', border:xlHair() })
+        .value = isVital ? 'POUCOS VITAIS' : 'muitos triviais';
+      ws.getRow(row).height = 19;
+      row++;
+    });
+
+    xl(ws.getRow(row).getCell(1), { fill:XL.graphite, color:XL.textLt, bold:true, h:'center' }).value = '';
+    xl(ws.getRow(row).getCell(2), { fill:XL.graphite, color:XL.textLt, bold:true, indent:1 }).value = 'TOTAL';
+    xl(ws.getRow(row).getCell(3), { fill:XL.graphite, color:XL.copperLt, bold:true, h:'right', indent:1, numFmt:'#,##0.##' }).value = total;
+    [4,5,6,7].forEach(c => xl(ws.getRow(row).getCell(c), { fill:XL.graphite }));
+    ws.getRow(row).height = 22;
+    row += 2;
+
+    ws.mergeCells(`A${row}:G${row}`);
+    xl(ws.getCell(`A${row}`), { fill:XL.copperBg, bold:true, indent:1,
+                                border:{ left:{ style:'thick', color:{ argb:XL.copper } } } })
+      .value = `LEITURA  ›  ${vitalCount} de ${sorted.length} problema(s) concentram ${(vitalCum * 100).toFixed(1)}% do total. Resolver esses ${vitalCount} resolve a maior parte da dor.`;
+    ws.getRow(row).height = 24;
+    ws.autoFilter = `A6:G6`;
+  }
+  xlFooterNote(ws, row + 2, 7, 'Didática: "valor" pode ser frequência, custo, horas perdidas — qualquer medida comparável entre os itens. A régua de 80% é um corte prático, não uma lei exata.');
+  return ws;
+}
+
+/* ---------- Ishikawa ---------- */
+function xlSheetIshikawa(wb, ctx){
+  const ws = xlSheet(wb, 'Ishikawa', ctx, {
+    tab: XL.steel,
+    columns: [ { width:22 }, { width:52 }, { width:52 }, { width:16 } ]
+  });
+  xlBand(ws, 4, 'ANÁLISE DE CAUSA RAIZ', 'Diagrama de Ishikawa (6M)',
+    `Efeito analisado: ${ctx.problem || '— não definido —'}`);
+  let row = xlTableHead(ws, 6, [
+    { label:'Categoria (6M)' }, { label:'Causa' }, { label:'Subcausa / detalhamento' }, { label:'Solução?', align:'center' }
+  ]);
+
+  const hasAny = state.categories.some(c => c.causes.length);
+  if(!hasAny){
+    row = xlEmpty(ws, row, 4, 'Nenhuma causa mapeada nesta análise.');
+  } else {
+    let z = 0;
+    state.categories.forEach(cat => {
+      if(!cat.causes.length) return;
+      row = xlGroupRow(ws, row, 4, `${cat.name}  ·  ${cat.causes.length} causa(s)`, XL.copper);
+      cat.causes.forEach(cause => {
+        const bg = (z++ % 2) ? XL.paperAlt : XL.paper;
+        xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, size:9, indent:1, border:xlHair() }).value = cat.name;
+        xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = cause.text || '—';
+        xl(ws.getRow(row).getCell(3), { fill:bg, color:XL.textSoft, indent:1, border:xlHair() }).value = cause.subcauses.length ? '' : '—';
+        xl(ws.getRow(row).getCell(4), { fill:bg, border:xlHair() }).value = '';
+        ws.getRow(row).height = 19;
+        row++;
+        cause.subcauses.forEach(sc => {
+          const sbg = sc.isSolution ? XL.brassBg : ((z % 2) ? XL.paperAlt : XL.paper);
+          xl(ws.getRow(row).getCell(1), { fill:sbg, border:xlHair() }).value = '';
+          xl(ws.getRow(row).getCell(2), { fill:sbg, color:XL.textMut, size:9, indent:2, border:xlHair() }).value = '↳ ' + (cause.text || '');
+          xl(ws.getRow(row).getCell(3), { fill:sbg, color: sc.isSolution ? XL.brassDk : XL.textDk,
+                                          bold: !!sc.isSolution, indent:1, border:xlHair() }).value = sc.text || '—';
+          xl(ws.getRow(row).getCell(4), { fill:sbg, color: sc.isSolution ? XL.brassDk : XL.textMut,
+                                          bold:true, size:9, h:'center', border:xlHair() }).value = sc.isSolution ? '★ SIM' : '—';
+          ws.getRow(row).height = 18;
+          row++;
+        });
+      });
+    });
+  }
+  xlFooterNote(ws, row + 1, 4, 'Didática: os 6M (Método, Mão de obra, Material, Máquina, Meio ambiente, Medida) forçam olhar o problema por seis ângulos diferentes — evita parar na primeira causa óbvia. Subcausas marcadas com ★ foram sinalizadas como solução e alimentam o 5W2H.');
+  return ws;
+}
+
+/* ---------- 5 Porquês ---------- */
+function xlSheetPorques(wb, ctx){
+  const ws = xlSheet(wb, '5 Porquês', ctx, {
+    tab: XL.brass,
+    columns: [ { width:5 }, { width:34 }, { width:30 }, { width:30 }, { width:30 }, { width:30 }, { width:30 }, { width:18 } ]
+  });
+  xlBand(ws, 8, 'APROFUNDAMENTO', '5 Porquês',
+    'Cada linha é uma cadeia: parte de uma causa e pergunta "por quê?" até chegar na raiz. A última resposta preenchida é a causa raiz.');
+  let row = xlTableHead(ws, 6, [
+    { label:'#', align:'center' }, { label:'Causa investigada' },
+    { label:'Por quê 1' }, { label:'Por quê 2' }, { label:'Por quê 3' }, { label:'Por quê 4' }, { label:'Por quê 5' },
+    { label:'Raiz confirmada?', align:'center' }
+  ]);
+
+  if(!fiveWhys.chains.length){
+    row = xlEmpty(ws, row, 8, 'Nenhuma cadeia de 5 Porquês registrada nesta análise.');
+  } else {
+    fiveWhys.chains.forEach((c, i) => {
+      const bg = c.rootConfirmed ? XL.brassBg : ((i % 2) ? XL.paperAlt : XL.paper);
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = i + 1;
+      xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = c.problem || '—';
+      for(let w = 0; w < 5; w++){
+        const txt = (c.whys[w] || '').trim();
+        const isLast = txt && !(c.whys.slice(w + 1).some(x => (x || '').trim()));
+        xl(ws.getRow(row).getCell(3 + w), {
+          fill:bg, indent:1, border:xlHair(),
+          color: isLast && c.rootConfirmed ? XL.brassDk : (txt ? XL.textDk : XL.textMut),
+          bold: !!(isLast && c.rootConfirmed)
+        }).value = txt || '—';
+      }
+      xl(ws.getRow(row).getCell(8), {
+        fill: c.rootConfirmed ? XL.brassBg : XL.paperWarm,
+        color: c.rootConfirmed ? XL.brassDk : XL.steel,
+        bold:true, size:9, h:'center', border:xlHair()
+      }).value = c.rootConfirmed ? '✓ CONFIRMADA' : 'em aberto';
+      ws.getRow(row).height = 34;
+      row++;
+    });
+    ws.autoFilter = `A6:H6`;
+  }
+  xlFooterNote(ws, row + 1, 8, 'Didática: pare quando a resposta virar algo que você controla (um processo, uma regra, um treinamento). Se a resposta for "porque a pessoa errou", ainda não chegou na raiz.');
+  return ws;
+}
+
+/* ---------- FCA ---------- */
+function xlSheetFca(wb, ctx){
+  const ws = xlSheet(wb, 'FCA', ctx, {
+    tab: XL.danger,
+    columns: [ { width:5 }, { width:46 }, { width:46 }, { width:46 }, { width:20 }, { width:15 }, { width:14 } ]
+  });
+  xlBand(ws, 7, 'RESPOSTA RÁPIDA A DESVIOS', 'FCA — Fato, Causa, Ação',
+    'Para quando um resultado sai fora do esperado: descreva o fato de forma mensurável, ache a causa real e defina a ação que elimina a causa.');
+  let row = xlTableHead(ws, 6, [
+    { label:'#', align:'center' }, { label:'Fato (o que aconteceu)' }, { label:'Causa (por que aconteceu)' },
+    { label:'Ação (o que elimina a causa)' }, { label:'Responsável' }, { label:'Prazo' }, { label:'Status', align:'center' }
+  ]);
+
+  if(!fca.entries.length){
+    row = xlEmpty(ws, row, 7, 'Nenhum registro de FCA nesta análise.');
+  } else {
+    fca.entries.forEach((e, i) => {
+      const bg = (i % 2) ? XL.paperAlt : XL.paper;
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = i + 1;
+      xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair(), strike:!!e.done }).value = e.fact || '—';
+      xl(ws.getRow(row).getCell(3), { fill:bg, color:XL.danger, indent:1, border:xlHair() }).value = e.cause || '—';
+      xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.brassDk, bold:true, indent:1, border:xlHair() }).value = e.action || '—';
+      xl(ws.getRow(row).getCell(5), { fill:bg, indent:1, border:xlHair() }).value = e.responsible || '—';
+      xl(ws.getRow(row).getCell(6), { fill:bg, h:'center', border:xlHair() }).value = e.deadline || '—';
+      xl(ws.getRow(row).getCell(7), { fill: e.done ? XL.brassBg : XL.paperWarm, color: e.done ? XL.brassDk : XL.steel,
+                                      bold:true, size:9, h:'center', border:xlHair() }).value = e.done ? '✓ CONCLUÍDO' : 'pendente';
+      ws.getRow(row).height = 32;
+      row++;
+    });
+    ws.autoFilter = `A6:G6`;
+  }
+  xlFooterNote(ws, row + 1, 7, 'Didática: o fato precisa ser mensurável ("SLA caiu de 95% para 78%"), não uma impressão ("o time está lento"). A ação ataca a causa — se ela só corrige o efeito, o desvio volta.');
+  return ws;
+}
+
+/* ---------- 5W2H ---------- */
+function xlSheet5w2h(wb, ctx){
+  const ws = xlSheet(wb, '5W2H', ctx, {
+    tab: XL.copper,
+    columns: [ { width:5 }, { width:40 }, { width:30 }, { width:18 }, { width:16 }, { width:18 }, { width:32 }, { width:16 },
+               { width:6 }, { width:6 }, { width:6 }, { width:10 }, { width:14 } ]
+  });
+  xlBand(ws, 13, 'PLANO DE AÇÃO', '5W2H + priorização GUT',
+    'O quê, por quê, onde, quando, quem, como e quanto custa. O score GUT (Gravidade × Urgência × Tendência) ordena o que atacar primeiro.');
+  let row = xlTableHead(ws, 6, [
+    { label:'#', align:'center' }, { label:'O quê (What)' }, { label:'Por quê (Why)' }, { label:'Onde (Where)' },
+    { label:'Quando (When)' }, { label:'Quem (Who)' }, { label:'Como (How)' }, { label:'Quanto (How much)' },
+    { label:'G', align:'center' }, { label:'U', align:'center' }, { label:'T', align:'center' },
+    { label:'GUT', align:'center' }, { label:'Status', align:'center' }
+  ]);
+
+  if(!plan.items.length){
+    row = xlEmpty(ws, row, 13, 'Nenhuma ação registrada no plano desta análise.');
+  } else {
+    const ordered = [...plan.items].sort((a, b) => computeGutScore(b) - computeGutScore(a));
+    ordered.forEach((it, i) => {
+      const score = computeGutScore(it);
+      const bg = it.done ? XL.brassBg : ((i % 2) ? XL.paperAlt : XL.paper);
+      const scoreFill = score >= 64 ? XL.dangerBg : score >= 27 ? XL.copperBg : XL.paperWarm;
+      const scoreColor = score >= 64 ? XL.danger : score >= 27 ? XL.copper : XL.steel;
+      const cells = [
+        [1, i + 1,                 { color:XL.textSoft, h:'center' }],
+        [2, it.what || '—',        { bold:true, indent:1, strike:!!it.done }],
+        [3, it.why || '—',         { color:XL.textSoft, indent:1 }],
+        [4, it.where || '—',       { indent:1 }],
+        [5, it.when || '—',        { indent:1 }],
+        [6, it.who || '—',         { bold:true, indent:1 }],
+        [7, it.how || '—',         { color:XL.textSoft, indent:1 }],
+        [8, it.howmuch || '—',     { indent:1 }],
+        [9, Number(it.g) || 1,     { h:'center' }],
+        [10, Number(it.u) || 1,    { h:'center' }],
+        [11, Number(it.t) || 1,    { h:'center' }]
+      ];
+      cells.forEach(([c, v, o]) => xl(ws.getRow(row).getCell(c), Object.assign({ fill:bg, border:xlHair() }, o)).value = v);
+      xl(ws.getRow(row).getCell(12), { fill:scoreFill, color:scoreColor, bold:true, h:'center', border:xlHair() }).value = score;
+      xl(ws.getRow(row).getCell(13), { fill: it.done ? XL.brassBg : XL.paperWarm, color: it.done ? XL.brassDk : XL.steel,
+                                       bold:true, size:9, h:'center', border:xlHair() }).value = it.done ? '✓ CONCLUÍDA' : 'pendente';
+      ws.getRow(row).height = 30;
+      row++;
+    });
+
+    const done = plan.items.filter(i => i.done).length;
+    xl(ws.getRow(row).getCell(1), { fill:XL.graphite }).value = '';
+    ws.mergeCells(`B${row}:K${row}`);
+    xl(ws.getCell(`B${row}`), { fill:XL.graphite, color:XL.textLt, bold:true, indent:1 })
+      .value = `${plan.items.length} ação(ões) no plano · ${done} concluída(s) · ${plan.items.length - done} pendente(s)`;
+    xl(ws.getRow(row).getCell(12), { fill:XL.graphite, color:XL.copperLt, bold:true, h:'center' })
+      .value = Math.max(0, ...plan.items.map(computeGutScore));
+    xl(ws.getRow(row).getCell(13), { fill:XL.graphite, color:XL.textMut, size:8, bold:true, h:'center' }).value = 'GUT MÁX';
+    ws.getRow(row).height = 22;
+    ws.autoFilter = `A6:M6`;
+    row += 2;
+
+    ws.mergeCells(`A${row}:M${row}`);
+    xl(ws.getCell(`A${row}`), { fill:XL.copperBg, bold:true, indent:1,
+                                border:{ left:{ style:'thick', color:{ argb:XL.copper } } } })
+      .value = 'COMO LER O GUT  ›  cada fator vai de 1 a 5 e o score é G × U × T (1 a 125). ≥ 64 crítico · 27 a 63 relevante · < 27 pode esperar. As linhas já vêm ordenadas do mais crítico para o menos.';
+    ws.getRow(row).height = 26;
+  }
+  xlFooterNote(ws, row + 2, 13, 'Didática: uma ação sem "quem" e sem "quando" não é plano, é intenção. Preencha essas duas colunas antes de fechar a análise.');
+  return ws;
+}
+
+/* ---------- PDCA / DMAIC (mesmo formato de quadro por etapa) ---------- */
+function xlSheetQuadro(wb, ctx, opts){
+  const ws = xlSheet(wb, opts.sheetName, ctx, {
+    tab: opts.tab,
+    orientation: 'portrait',
+    columns: [ { width:22 }, { width:6 }, { width:86 } ]
+  });
+  xlBand(ws, 3, opts.kicker, opts.title, opts.note);
+  let row = xlTableHead(ws, 6, [{ label:'Etapa' }, { label:'#', align:'center' }, { label:'Item' }]);
+
+  if(!opts.items.length){
+    row = xlEmpty(ws, row, 3, `Nenhum item registrado no quadro ${opts.sheetName} desta análise.`);
+  } else {
+    opts.stages.forEach((stage, si) => {
+      const items = opts.items.filter(it => it.stage === stage.key);
+      row = xlGroupRow(ws, row, 3, `${si + 1}. ${stage.label}  ·  ${items.length} item(ns)`, XL.copper);
+      if(!items.length){
+        ws.mergeCells(`A${row}:C${row}`);
+        xl(ws.getCell(`A${row}`), { fill:XL.paper, color:XL.textMut, italic:true, size:9, indent:2, border:xlHair() }).value = 'sem itens nesta etapa';
+        ws.getRow(row).height = 17;
+        row++;
+      }
+      items.forEach((it, i) => {
+        const bg = (i % 2) ? XL.paperAlt : XL.paper;
+        xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, size:9, indent:1, border:xlHair() }).value = stage.label;
+        xl(ws.getRow(row).getCell(2), { fill:bg, color:XL.textMut, h:'center', border:xlHair() }).value = i + 1;
+        xl(ws.getRow(row).getCell(3), { fill:bg, indent:1, border:xlHair() }).value = it.text || '—';
+        ws.getRow(row).height = 22;
+        row++;
+      });
+    });
+  }
+  xlFooterNote(ws, row + 1, 3, opts.footer);
+  return ws;
+}
+
+async function buildExcelWorkbook(ExcelJS, ctx){
+  const wb = new ExcelJS.Workbook();
+  wb.creator = ctx.author ? `${ctx.author} · Metodologias` : 'Metodologias';
+  wb.lastModifiedBy = 'Metodologias';
+  wb.created = ctx.now;
+  wb.modified = ctx.now;
+  wb.title = `${ctx.name} — relatório de análise`;
+  wb.subject = ctx.problem || 'Análise de causa raiz e plano de ação';
+  wb.company = 'Metodologias';
+  wb.category = 'Melhoria contínua';
+  wb.keywords = 'VoC, Pareto, Ishikawa, 5 Porquês, FCA, 5W2H, PDCA, DMAIC';
+  wb.description = 'Relatório gerado pelo app Metodologias — uma aba por metodologia, na ordem da trilha de análise.';
+
+  xlSheetCapa(wb, ctx);
+  xlSheetPainel(wb, ctx);
+  xlSheetVoc(wb, ctx);
+  xlSheetPareto(wb, ctx);
+  xlSheetIshikawa(wb, ctx);
+  xlSheetPorques(wb, ctx);
+  xlSheetFca(wb, ctx);
+  xlSheet5w2h(wb, ctx);
+  xlSheetQuadro(wb, ctx, {
+    sheetName:'PDCA', tab:XL.brass, items:pdca.items, stages:PDCA_STAGES,
+    kicker:'MELHORIA CONTÍNUA', title:'PDCA — Planejar, Fazer, Verificar, Agir',
+    note:'Ciclo para testar e consolidar uma solução já definida, girando até o processo estabilizar.',
+    footer:'Didática: o ciclo só fecha quando "Agir" padroniza o que deu certo (ou corrige o que não deu) — itens parados em "Fazer" são trabalho em aberto, não resultado.'
+  });
+  xlSheetQuadro(wb, ctx, {
+    sheetName:'DMAIC', tab:XL.steel, items:dmaic.items, stages:DMAIC_STAGES,
+    kicker:'PROJETO GUIADO POR DADOS', title:'DMAIC — Definir, Medir, Analisar, Melhorar, Controlar',
+    note:'Estrutura para problemas complexos. Diferente do PDCA, não é cíclico — é a espinha dorsal de um projeto completo de melhoria.',
+    footer:'Didática: sem a etapa "Medir" o DMAIC vira palpite. E sem "Controlar", o ganho evapora alguns meses depois.'
+  });
+  return wb;
+}
+
+document.getElementById('btn-export-xlsx').addEventListener('click', async () => {
+  const statusEl = document.getElementById('status-analysis');
+  const btn = document.getElementById('btn-export-xlsx');
+  const originalLabel = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '📊 Gerando…';
+  statusEl.textContent = 'montando o relatório em Excel…';
+  try{
+    const ExcelJS = await loadExcelJS();
+    const ctx = xlContext();
+    const wb = await buildExcelWorkbook(ExcelJS, ctx);
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analise-${slugify(ctx.name)}-${ctx.now.toISOString().slice(0,10)}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    statusEl.textContent = 'relatório baixado (.xlsx) ✓';
+  }catch(err){
+    console.error(err);
+    statusEl.textContent = 'não foi possível gerar o Excel: ' + (err && err.message ? err.message : 'erro desconhecido');
+  }finally{
+    btn.disabled = false;
+    btn.textContent = originalLabel;
+    setTimeout(() => { statusEl.textContent = ''; }, 6000);
+  }
 });
 
 /* ================= Ishikawa ================= */
