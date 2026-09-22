@@ -96,11 +96,23 @@
     border-right: 1px solid var(--sidebar-line);
     padding: 18px 14px 24px; display:flex; flex-direction:column; gap:16px;
     position: sticky; top:0; height:100vh; overflow-y:auto;
-    transition: width .18s ease, padding .18s ease;
+    /* Origem = centro do botão hambúrguer (14px de padding + 18px de meio
+       botão), pra que o painel encolha exatamente pra dentro dos 3 traços. */
+    transform-origin: 32px 36px;
+    transition: width .26s cubic-bezier(.4,0,.2,1),
+                padding .26s cubic-bezier(.4,0,.2,1),
+                transform .28s cubic-bezier(.45,0,.2,1),
+                opacity .2s ease;
   }
-  .sidebar.collapsed{ width: 68px; padding: 18px 10px 24px; }
+  .sidebar.is-hidden{
+    width: 0; padding-left: 0; padding-right: 0;
+    border-right-width: 0;
+    overflow: hidden; pointer-events: none;
+    opacity: 0; transform: scale(0.14);
+  }
   .sidebar-header{ display:flex; align-items:center; gap:10px; }
   .sidebar-toggle{
+    position: relative;
     width:36px; height:36px; flex-shrink:0; border-radius:var(--radius);
     border:1px solid var(--sidebar-line); background:transparent; cursor:pointer;
     display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
@@ -114,7 +126,63 @@
     text-transform:uppercase; letter-spacing:0.16em; color: var(--sidebar-ink);
     white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
-  .sidebar.collapsed .sidebar-brand-title{ display:none; }
+
+  /* ---- Recolhimento: os itens são puxados pra dentro do botão, de baixo pra
+     cima, e o painel inteiro colapsa em cima deles. --i vem do JS. ---- */
+  .sidebar-brand-title, .sidebar-footer{
+    transition: opacity .16s ease, transform .24s cubic-bezier(.4,0,.2,1);
+  }
+  .sidebar.is-hidden .sidebar-brand-title{ opacity:0; transform: translateX(-18px) scale(.78); }
+  .sidebar.is-hidden .sidebar-footer{ opacity:0; transform: translateY(24px) scale(.82); }
+  .sidebar .tab-btn{
+    transition: opacity .18s ease, transform .24s cubic-bezier(.4,0,.2,1);
+    transition-delay: calc(var(--i, 0) * 9ms);
+  }
+  .sidebar.is-hidden .tab-btn{
+    opacity: 0; transform: translateX(-16px) scale(.8);
+    transition-delay: calc((9 - var(--i, 0)) * 9ms);
+  }
+
+  /* Botão fixo que assume o lugar do original quando o painel some. Fica na
+     mesma coordenada de tela, então a troca é imperceptível. */
+  .sidebar-toggle--floating{
+    position: fixed; left: 14px; top: 18px; z-index: 950;
+    background: var(--sidebar-bg);
+    opacity: 0; transform: scale(.55); pointer-events: none;
+    transition: opacity .16s ease, transform .2s cubic-bezier(.34,1.32,.64,1);
+  }
+  body.sidebar-hidden .sidebar-toggle--floating{
+    opacity: 1; transform: scale(1); pointer-events: auto;
+    transition-delay: .17s;
+  }
+  @media (min-width: 901px){
+    body.sidebar-hidden .main-content{ padding-left: 62px; }
+  }
+
+  /* O botão "engole" o painel: os traços esticam e um anel se abre no impacto. */
+  @keyframes toggle-absorb{
+    0%{ transform: scaleX(1); }
+    40%{ transform: scaleX(1.75); }
+    100%{ transform: scaleX(1); }
+  }
+  @keyframes toggle-ring{
+    0%{ opacity:.75; transform: scale(.65); }
+    100%{ opacity:0; transform: scale(1.55); }
+  }
+  .sidebar-toggle.is-absorbing span{ animation: toggle-absorb .4s cubic-bezier(.35,0,.2,1) both; }
+  .sidebar-toggle.is-absorbing span:nth-child(2){ animation-delay: .05s; }
+  .sidebar-toggle.is-absorbing span:nth-child(3){ animation-delay: .1s; }
+  .sidebar-toggle.is-absorbing::after{
+    content:""; position:absolute; inset:-5px; border-radius:var(--radius);
+    border:1px solid var(--rust); pointer-events:none;
+    animation: toggle-ring .5s ease-out both;
+  }
+  @media (prefers-reduced-motion: reduce){
+    .sidebar, .sidebar .tab-btn, .sidebar-brand-title,
+    .sidebar-footer, .sidebar-toggle--floating{ transition-duration: .01ms !important; }
+    .sidebar-toggle.is-absorbing span,
+    .sidebar-toggle.is-absorbing::after{ animation: none !important; }
+  }
 
   .main-content{ flex:1; min-width:0; padding: 32px 24px 80px; }
 
@@ -211,7 +279,6 @@
   .tab-btn.active{ background: var(--rust); border-color: var(--rust); color: #fff; }
   .tab-btn--soon{ opacity: 0.4; cursor: default; }
   .tab-btn--soon:hover{ border-color: transparent; background:transparent; color: var(--sidebar-ink-soft); }
-  .sidebar.collapsed .tab-btn{ text-align:center; padding:10px 2px; }
 
   .sidebar-scrim{ display:none; }
   @media (max-width: 900px){
@@ -221,6 +288,10 @@
       box-shadow: 6px 0 28px rgba(20,15,10,0.35);
     }
     .sidebar.mobile-open{ transform: translateX(0); }
+    .sidebar-toggle--floating{ opacity:1; transform:scale(1); pointer-events:auto; }
+    .sidebar.mobile-open ~ .sidebar-toggle--floating{
+      opacity:0; transform:scale(.55); pointer-events:none;
+    }
     .sidebar-scrim{
       display:block; position:fixed; inset:0; background:rgba(20,15,10,0.45);
       z-index:800; opacity:0; pointer-events:none; transition:opacity .2s ease;
@@ -851,7 +922,8 @@
     box-shadow:none !important; background:#fff !important;
   }
   .app-shell{ display:block; }
-  .sidebar, .sidebar-scrim, .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide,
+  .sidebar, .sidebar-scrim, .sidebar-toggle--floating,
+  .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide,
   .icon-btn, .import-note, .dash-actions, .watermark, .welcome-greeting,
   #view-trilha, #auth-gate, #welcome-screen, .export-menu-wrap,
   .flag-btn, .toggle-sub, .trilha-next{ display:none !important; }
@@ -1129,16 +1201,12 @@
     display:flex; flex-direction:column; gap:8px;
   }
   .sidebar-account-status{ font-size: 11px; color: var(--sidebar-ink-soft); }
-  .sidebar.collapsed .sidebar-account-status{ display:none; }
   .sidebar-signout{
     font-family:'Inter', sans-serif; font-size: 12px; color: var(--sidebar-ink);
     background: transparent; border: 1px solid var(--sidebar-line); border-radius: 6px;
     padding: 7px 10px; cursor:pointer; text-align:left;
   }
   .sidebar-signout:hover{ border-color: var(--rust); color: var(--rust); }
-  .sidebar.collapsed .sidebar-signout{ font-size: 0; padding: 7px; }
-  .sidebar.collapsed .sidebar-signout::before{ content:'⏻'; font-size: 14px; }
-  .sidebar.collapsed #btn-theme::before{ content:'◐'; }
 
   .auth-tabs{ display:flex; gap:6px; margin: 8px 0 20px; background: var(--paper); border:1px solid var(--line-strong); border-radius: 9px; padding: 4px; }
   .auth-tab{
@@ -1356,6 +1424,10 @@
       <button id="btn-sign-out" class="sidebar-signout" style="display:none">Sair</button>
     </div>
   </aside>
+  <button class="sidebar-toggle sidebar-toggle--floating" id="sidebar-toggle-floating"
+          aria-label="Abrir menu" title="Abrir menu">
+    <span></span><span></span><span></span>
+  </button>
   <div class="sidebar-scrim" id="sidebar-scrim"></div>
 
   <main class="main-content">
@@ -5305,17 +5377,46 @@ window.addEventListener('resize', () => requestAnimationFrame(drawBones));
 /* ================= Menu lateral (sidebar) ================= */
 const sidebarEl = document.getElementById('sidebar');
 const sidebarScrimEl = document.getElementById('sidebar-scrim');
+const sidebarToggleEl = document.getElementById('sidebar-toggle');
+const sidebarFloatEl = document.getElementById('sidebar-toggle-floating');
 
 function isMobileWidth(){ return window.innerWidth <= 900; }
 
-document.getElementById('sidebar-toggle').addEventListener('click', () => {
+// O CSS escalona o recolhimento dos itens por --i (o de baixo sai primeiro).
+document.querySelectorAll('#tabs .tab-btn').forEach((btn, i) => btn.style.setProperty('--i', i));
+
+let absorbTimer = null, absorbDelay = null;
+function pulseAbsorb(btn, delay){
+  clearTimeout(absorbTimer); clearTimeout(absorbDelay);
+  [sidebarToggleEl, sidebarFloatEl].forEach(b => b && b.classList.remove('is-absorbing'));
+  absorbDelay = setTimeout(() => {
+    if(!btn) return;
+    void btn.offsetWidth;                       // reinicia a animação
+    btn.classList.add('is-absorbing');
+    absorbTimer = setTimeout(() => btn.classList.remove('is-absorbing'), 520);
+  }, delay);
+}
+
+function setSidebarHidden(hidden){
+  sidebarEl.classList.toggle('is-hidden', hidden);
+  document.body.classList.toggle('sidebar-hidden', hidden);
+  // sai da árvore de foco enquanto está recolhido
+  if(hidden) sidebarEl.setAttribute('inert', '');
+  else sidebarEl.removeAttribute('inert');
+  // ao fechar, o pulso espera o painel chegar no botão; ao abrir, sai na hora
+  pulseAbsorb(hidden ? sidebarFloatEl : sidebarToggleEl, hidden ? 170 : 0);
+  // a espinha de peixe é desenhada em px a partir da largura disponível
+  setTimeout(() => requestAnimationFrame(drawBones), 340);
+}
+
+[sidebarToggleEl, sidebarFloatEl].forEach(btn => btn && btn.addEventListener('click', () => {
   if(isMobileWidth()){
-    sidebarEl.classList.toggle('mobile-open');
-    sidebarScrimEl.classList.toggle('active');
+    const open = sidebarEl.classList.toggle('mobile-open');
+    sidebarScrimEl.classList.toggle('active', open);
   } else {
-    sidebarEl.classList.toggle('collapsed');
+    setSidebarHidden(!sidebarEl.classList.contains('is-hidden'));
   }
-});
+}));
 
 sidebarScrimEl.addEventListener('click', () => {
   sidebarEl.classList.remove('mobile-open');
