@@ -37,6 +37,10 @@
     --sidebar-line: #262220;
     --radius: 3px;
     --hatch: repeating-linear-gradient(45deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 24px);
+    /* Silhuetas das transições: preto -> marrom. No tema escuro o marrom é mais
+       claro, senão a silhueta some no fundo quase preto. */
+    --fx-sil-a: #100C09;
+    --fx-sil-b: #C07A42;
   }
 
   /* ===== Tema claro (o visual anterior, preservado) ===== */
@@ -64,6 +68,8 @@
     --sidebar-line: #33291F;
     --radius: 8px;
     --hatch: repeating-linear-gradient(45deg, rgba(33,27,21,0.02) 0 1px, transparent 1px 24px);
+    --fx-sil-a: #14100B;
+    --fx-sil-b: #5A3418;
   }
 
   .analysis-bar, .problem-block, .summary, .action-card, .pdca-col, .dash-card, .why-chain, .cat-card {
@@ -1208,6 +1214,178 @@
   }
   .sidebar-signout:hover{ border-color: var(--rust); color: var(--rust); }
 
+  /* ================= Transição entre metodologias =================
+     Uma cortina cobre a área de conteúdo, a view é trocada por baixo dela e a
+     nova entra descendo. Cada metodologia tem seu próprio motivo animado. */
+  .view-fx{
+    position: fixed; top:0; right:0; bottom:0; left:0;
+    z-index: 880; display: none; overflow: hidden;
+    pointer-events: none;
+  }
+  .view-fx.is-playing{ display: block; }
+  .view-fx-veil{
+    position: absolute; inset: 0;
+    background: var(--hatch), var(--paper-card);
+    animation: fx-veil var(--fx-dur) cubic-bezier(.4,0,.2,1) both;
+  }
+  @keyframes fx-veil{
+    0%{ opacity: 0; }
+    24%{ opacity: 1; }
+    58%{ opacity: 1; }
+    100%{ opacity: 0; }
+  }
+  .view-fx-stage{
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 26px;
+    animation: fx-fade var(--fx-dur) linear both;
+  }
+  /* o motivo sai um pouco antes da cortina, pra não pairar sobre o conteúdo */
+  @keyframes fx-fade{
+    0%{ opacity: 0; } 12%{ opacity: 1; } 66%{ opacity: 1; } 86%, 100%{ opacity: 0; }
+  }
+  .fx-label{
+    font-family:'Inter', sans-serif; font-size: 11px; font-weight: 600;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--ink-soft);
+    animation: fx-label var(--fx-dur) ease-out both;
+  }
+  @keyframes fx-label{
+    0%{ opacity:0; transform: translateY(8px); }
+    26%{ opacity:1; transform: translateY(0); }
+    72%{ opacity:1; transform: translateY(0); }
+    100%{ opacity:0; transform: translateY(-8px); }
+  }
+
+  /* ---- A nova view entra descendo ---- */
+  @keyframes view-enter-down{
+    from{ opacity: 0; transform: translateY(-30px); }
+    to{ opacity: 1; transform: translateY(0); }
+  }
+  .view.is-entering{ animation: view-enter-down .44s cubic-bezier(.22,.9,.3,1) both; }
+
+  /* ---- Siglas (VOC, PDCA, DMAIC, FCA, 5W2H): as letras passam pela tela ---- */
+  .fx-sigla{ position: relative; display: flex; align-items: center; gap: clamp(3px, 1vw, 14px); }
+  .fx-char{
+    font-family:'Oswald','Archivo',sans-serif; font-weight: 700; line-height: 1;
+    font-size: clamp(52px, 10.5vw, 128px); letter-spacing: 0.02em;
+    color: var(--ink);
+    animation: fx-char 620ms ease-in-out var(--d, 0ms) both;
+  }
+  .fx-char--ghost{ color: var(--rust); }
+  @supports (-webkit-text-stroke: 2px red){
+    .fx-char--ghost{ color: transparent; -webkit-text-stroke: 2px var(--rust); }
+  }
+  @keyframes fx-char{
+    0%{ transform: translateX(58vw) skewX(-14deg) scale(.8); opacity: 0; }
+    22%{ opacity: 1; }
+    38%{ transform: translateX(0) skewX(0deg) scale(1); opacity: 1; }
+    64%{ transform: translateX(0) skewX(0deg) scale(1); opacity: 1; }
+    78%{ opacity: 1; }
+    100%{ transform: translateX(-58vw) skewX(14deg) scale(.8); opacity: 0; }
+  }
+  .fx-sigla-bar{
+    position: absolute; left: -7%; right: -7%; bottom: -20px; height: 4px;
+    background: var(--rust);
+    animation: fx-sigla-bar 720ms cubic-bezier(.5,0,.2,1) 60ms both;
+  }
+  @keyframes fx-sigla-bar{
+    0%{ transform: scaleX(0); transform-origin: left; }
+    42%{ transform: scaleX(1); transform-origin: left; }
+    56%{ transform: scaleX(1); transform-origin: right; }
+    100%{ transform: scaleX(0); transform-origin: right; }
+  }
+
+  /* ---- Ishikawa: um peixe atravessa a tela ---- */
+  .fx-fish{ animation: fx-fish-x 900ms linear both; }
+  .fx-fish svg{ display: block; width: min(46vw, 420px); height: auto;
+                animation: fx-fish-y 900ms ease-in-out both; }
+  @keyframes fx-fish-x{
+    0%{ transform: translateX(-98vw); }
+    100%{ transform: translateX(98vw); }
+  }
+  @keyframes fx-fish-y{
+    0%, 100%{ transform: translateY(0) rotate(0deg); }
+    28%{ transform: translateY(-18px) rotate(-3.5deg); }
+    72%{ transform: translateY(15px) rotate(3.5deg); }
+  }
+  .fx-fish-tail{
+    transform-box: view-box; transform-origin: 76px 55px;
+    animation: fx-fish-tail 280ms ease-in-out infinite;
+  }
+  @keyframes fx-fish-tail{
+    0%, 100%{ transform: rotate(-10deg); }
+    50%{ transform: rotate(10deg); }
+  }
+  .fx-bubble{ animation: fx-bubble 900ms ease-out var(--d, 0ms) infinite; }
+  @keyframes fx-bubble{
+    0%{ transform: translateY(0); opacity: 0; }
+    20%{ opacity: .7; }
+    100%{ transform: translateY(-34px); opacity: 0; }
+  }
+
+  /* ---- Pareto: as colunas sobem e descem, a curva acumulada é traçada ---- */
+  .fx-pareto svg{ display: block; width: min(56vw, 440px); height: auto; }
+  .fx-p-bar{
+    transform-box: fill-box; transform-origin: bottom;
+    animation: fx-p-bar 600ms cubic-bezier(.3,.8,.3,1) var(--d, 0ms) both;
+  }
+  @keyframes fx-p-bar{
+    0%{ transform: scaleY(0); }
+    34%{ transform: scaleY(1); }
+    64%{ transform: scaleY(1); }
+    100%{ transform: scaleY(0); }
+  }
+  .fx-p-line{
+    stroke-dasharray: 320; stroke-dashoffset: 320;
+    animation: fx-p-line 760ms cubic-bezier(.4,0,.3,1) 150ms both;
+  }
+  @keyframes fx-p-line{
+    0%{ stroke-dashoffset: 320; opacity: 1; }
+    58%{ stroke-dashoffset: 0; opacity: 1; }
+    80%{ stroke-dashoffset: 0; opacity: 1; }
+    100%{ stroke-dashoffset: 0; opacity: 0; }
+  }
+
+  /* ---- 5 Porquês: uma escadinha e um homenzinho subindo degrau a degrau ---- */
+  .fx-porques svg{ display: block; width: min(56vw, 450px); height: auto; }
+  .fx-step{
+    transform-box: fill-box; transform-origin: bottom;
+    animation: fx-step 380ms cubic-bezier(.25,.9,.3,1) var(--d, 0ms) both;
+  }
+  @keyframes fx-step{
+    0%{ transform: scaleY(0); opacity: 0; }
+    100%{ transform: scaleY(1); opacity: 1; }
+  }
+  .fx-step-q{
+    font-family:'Oswald','Archivo',sans-serif; font-weight: 700; font-size: 16px;
+    animation: fx-step-q 520ms ease-out var(--d, 0ms) both;
+  }
+  @keyframes fx-step-q{
+    0%{ opacity: 0; transform: translateY(7px); }
+    34%{ opacity: 1; transform: translateY(0); }
+    100%{ opacity: 1; transform: translateY(0); }
+  }
+  .fx-guy{ animation: fx-guy 700ms cubic-bezier(.4,0,.55,1) 240ms both; }
+  @keyframes fx-guy{
+    0%{ transform: translate(6px, 140px); }
+    7%{ transform: translate(22px, 106px); }
+    14%{ transform: translate(40px, 116px); }
+    24%{ transform: translate(58px, 82px); }
+    31%{ transform: translate(80px, 92px); }
+    41%{ transform: translate(98px, 58px); }
+    48%{ transform: translate(120px, 68px); }
+    58%{ transform: translate(138px, 34px); }
+    65%{ transform: translate(160px, 44px); }
+    75%{ transform: translate(178px, 10px); }
+    82%{ transform: translate(200px, 20px); }
+    100%{ transform: translate(234px, 20px); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .view-fx{ display: none !important; }
+    .view.is-entering{ animation: none !important; }
+  }
+
   .auth-tabs{ display:flex; gap:6px; margin: 8px 0 20px; background: var(--paper); border:1px solid var(--line-strong); border-radius: 9px; padding: 4px; }
   .auth-tab{
     flex:1; font-family:'Inter', sans-serif; font-size: 12.5px; font-weight:600; color: var(--ink-soft);
@@ -1726,6 +1904,7 @@
 </div>
 
 <div class="watermark">Created by Anderson Timoteo</div>
+<div class="view-fx" id="view-fx" aria-hidden="true"></div>
 
 
 <script>
@@ -5348,8 +5527,157 @@ function buildDashCard(r){
 document.querySelectorAll('.tab-btn[data-view]').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
+/* ================= Transição entre metodologias =================
+   Cada metodologia tem um motivo próprio: as siglas cruzam a tela, o Ishikawa
+   manda um peixe, o Pareto sobe e desce as colunas e os 5 Porquês montam uma
+   escada com alguém subindo. A cortina cobre só a área de conteúdo — o menu
+   fica parado —, a view é trocada por baixo dela e a nova entra descendo. */
+const fxEl = document.getElementById('view-fx');
+
+const FX_LABEL = {
+  trilha:'Fluxo de trabalho', painel:'Visão geral', pdca:'Melhoria contínua',
+  voc:'Voz do cliente', pareto:'Priorização', ishikawa:'Análise de causa raiz',
+  '5porques':'Aprofundamento', '5w2h':'Plano de ação', dmaic:'Lean Six Sigma',
+  fca:'Resposta rápida a desvios'
+};
+// Views sem motivo próprio caem na animação de letras (o nome cruza a tela).
+const FX_PALAVRA = {
+  voc:'VOC', pdca:'PDCA', dmaic:'DMAIC', fca:'FCA', '5w2h':'5W2H',
+  trilha:'TRILHA', painel:'PAINEL'
+};
+const FX_DUR = { ishikawa: 900, pareto: 880, '5porques': 980 };
+
+function fxSigla(texto){
+  const chars = [...texto].map((c, i) =>
+    `<span class="fx-char${i % 2 ? ' fx-char--ghost' : ''}" style="--d:${i * 40}ms">${c}</span>`
+  ).join('');
+  return `<div class="fx-sigla">${chars}<span class="fx-sigla-bar"></span></div>`;
+}
+
+function fxPeixe(){
+  return `<div class="fx-fish"><svg viewBox="0 0 230 110">
+    <defs><linearGradient id="fx-fish-g" x1="0" y1="0" x2="0.9" y2="1">
+      <stop offset="0" stop-color="var(--fx-sil-a)"/>
+      <stop offset="1" stop-color="var(--fx-sil-b)"/>
+    </linearGradient></defs>
+    <g fill="url(#fx-fish-g)">
+      <path class="fx-fish-tail" d="M 76 55 L 24 28 L 37 55 L 24 82 Z"/>
+      <path d="M 130 29 L 148 8 L 160 33 Z"/>
+      <path d="M 148 64 L 136 84 L 170 72 Z"/>
+      <path d="M 202 55 C 176 24, 116 22, 76 40 C 52 51, 52 59, 76 70 C 116 88, 176 86, 202 55 Z"/>
+    </g>
+    <circle cx="186" cy="47" r="3.8" fill="var(--paper-card)"/>
+    <g fill="none" stroke="var(--steel)" stroke-width="1.6">
+      <circle class="fx-bubble" cx="30" cy="42" r="4" style="--d:0ms"/>
+      <circle class="fx-bubble" cx="15" cy="54" r="3" style="--d:200ms"/>
+      <circle class="fx-bubble" cx="27" cy="66" r="2.2" style="--d:400ms"/>
+    </g>
+  </svg></div>`;
+}
+
+function fxParetoFx(){
+  const alturas = [104, 80, 58, 40, 26, 16];
+  const total = alturas.reduce((a, b) => a + b, 0);
+  let acc = 0;
+  const barras = alturas.map((h, i) =>
+    `<rect class="fx-p-bar" x="${16 + i * 36}" y="${120 - h}" width="26" height="${h}"
+       fill="var(${i < 2 ? '--rust' : '--steel'})" style="--d:${i * 45}ms"/>`
+  ).join('');
+  const pontos = alturas.map((h, i) => {
+    acc += h;
+    return `${29 + i * 36},${(120 - (acc / total) * 104).toFixed(1)}`;
+  }).join(' ');
+  return `<div class="fx-pareto"><svg viewBox="0 0 240 140">
+    <line x1="8" y1="121" x2="232" y2="121" stroke="var(--line-strong)" stroke-width="2"/>
+    ${barras}
+    <polyline class="fx-p-line" points="${pontos}" fill="none" stroke="var(--moss)"
+      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg></div>`;
+}
+
+function fxEscada(){
+  let degraus = '';
+  for(let i = 0; i < 5; i++){
+    const x = 20 + i * 40, y = 116 - i * 24;
+    degraus += `<rect class="fx-step" x="${x}" y="${y}" width="40" height="${24 + i * 24}"
+      fill="var(--line-strong)" style="--d:${i * 55}ms"/>`;
+    degraus += `<text class="fx-step-q" x="${x + 20}" y="${y - 9}" text-anchor="middle"
+      fill="var(--rust)" style="--d:${i * 55 + 120}ms">?</text>`;
+  }
+  return `<div class="fx-porques"><svg viewBox="0 0 250 160">
+    <line x1="0" y1="141" x2="250" y2="141" stroke="var(--line-strong)" stroke-width="2"/>
+    ${degraus}
+    <g class="fx-guy" fill="var(--fx-sil-b)">
+      <circle cx="0" cy="-30" r="5.5"/>
+      <path d="M -4.5 -24 L 4.5 -24 L 6 -10 L -6 -10 Z"/>
+      <path d="M -6 -10 L -7.5 0 L -3 0 L -1.5 -10 Z"/>
+      <path d="M 1.5 -10 L 4.5 0 L 9 0 L 6 -10 Z"/>
+      <path d="M 4 -22 L 12 -17 L 10.5 -13.5 L 2.5 -18 Z"/>
+    </g>
+  </svg></div>`;
+}
+
+function fxMotivo(view){
+  if(view === 'ishikawa') return fxPeixe();
+  if(view === 'pareto') return fxParetoFx();
+  if(view === '5porques') return fxEscada();
+  return fxSigla(FX_PALAVRA[view] || view.toUpperCase());
+}
+
+let fxTimers = [];
+let currentView = 'trilha';
+
+function fxSemAnimacao(){
+  return matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+function fxClear(){
+  fxTimers.forEach(clearTimeout);
+  fxTimers = [];
+  fxEl.classList.remove('is-playing');
+  fxEl.innerHTML = '';
+}
+
+// a animação de entrada deixa um transform residual: tira assim que termina
+document.addEventListener('animationend', (e) => {
+  if(e.animationName === 'view-enter-down') e.target.classList.remove('is-entering');
+});
+
 function switchView(view){
+  const mudou = view !== currentView;
+  currentView = view;
+  // a aba acende na hora, mesmo com a cortina no caminho
   document.querySelectorAll('.tab-btn[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+
+  if(!mudou || fxSemAnimacao()){ applyView(view); return; }
+
+  const dur = FX_DUR[view] || 860;
+  fxClear();
+  // a cortina começa onde o conteúdo começa, pra não piscar por cima do menu
+  fxEl.style.left = Math.round(document.querySelector('.main-content').getBoundingClientRect().left) + 'px';
+  fxEl.style.setProperty('--fx-dur', dur + 'ms');
+  fxEl.innerHTML = '<div class="view-fx-veil"></div>' +
+    '<div class="view-fx-stage">' + fxMotivo(view) +
+    '<span class="fx-label">' + (FX_LABEL[view] || '') + '</span></div>';
+  fxEl.classList.add('is-playing');
+
+  const troca = Math.round(dur * 0.33);
+  const sec = document.getElementById('view-' + view);
+  fxTimers.push(setTimeout(() => {
+    applyView(view);
+    if(sec){
+      sec.classList.remove('is-entering');
+      void sec.offsetWidth;
+      sec.classList.add('is-entering');
+    }
+  }, troca));
+  // rede de segurança: se a aba ficar em segundo plano o animationend não vem,
+  // e o transform residual viraria containing block pra quem estiver dentro
+  fxTimers.push(setTimeout(() => sec && sec.classList.remove('is-entering'), troca + 520));
+  fxTimers.push(setTimeout(fxClear, dur + 40));
+}
+
+function applyView(view){
   document.getElementById('view-trilha').style.display = view === 'trilha' ? '' : 'none';
   document.getElementById('view-painel').style.display = view === 'painel' ? '' : 'none';
   document.getElementById('view-pdca').style.display = view === 'pdca' ? '' : 'none';
