@@ -140,13 +140,13 @@
   }
   .sidebar.is-hidden .sidebar-brand-title{ opacity:0; transform: translateX(-18px) scale(.78); }
   .sidebar.is-hidden .sidebar-footer{ opacity:0; transform: translateY(24px) scale(.82); }
-  .sidebar .tab-btn{
+  .sidebar .tab-btn, .sidebar .tabs-group{
     transition: opacity .18s ease, transform .24s cubic-bezier(.4,0,.2,1);
     transition-delay: calc(var(--i, 0) * 9ms);
   }
-  .sidebar.is-hidden .tab-btn{
+  .sidebar.is-hidden .tab-btn, .sidebar.is-hidden .tabs-group{
     opacity: 0; transform: translateX(-16px) scale(.8);
-    transition-delay: calc((9 - var(--i, 0)) * 9ms);
+    transition-delay: calc((var(--n, 9) - var(--i, 0)) * 9ms);
   }
 
   /* Botão fixo que assume o lugar do original quando o painel some. Fica na
@@ -184,7 +184,7 @@
     animation: toggle-ring .5s ease-out both;
   }
   @media (prefers-reduced-motion: reduce){
-    .sidebar, .sidebar .tab-btn, .sidebar-brand-title,
+    .sidebar, .sidebar .tab-btn, .sidebar .tabs-group, .sidebar-brand-title,
     .sidebar-footer, .sidebar-toggle--floating{ transition-duration: .01ms !important; }
     .sidebar-toggle.is-absorbing span,
     .sidebar-toggle.is-absorbing::after{ animation: none !important; }
@@ -283,8 +283,61 @@
   }
   .tab-btn:hover{ border-color: var(--sidebar-line); background: rgba(237,227,211,0.06); color: var(--sidebar-ink); }
   .tab-btn.active{ background: var(--rust); border-color: var(--rust); color: #fff; }
-  .tab-btn--soon{ opacity: 0.4; cursor: default; }
-  .tab-btn--soon:hover{ border-color: transparent; background:transparent; color: var(--sidebar-ink-soft); }
+
+  /* ---- Trilha em destaque: é a porta de entrada, não uma metodologia ---- */
+  .tab-btn--hero{
+    font-family:'Oswald','Archivo',sans-serif; font-size: 14px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    border-left: 3px solid var(--rust); border-radius: 0 var(--radius) var(--radius) 0;
+    color: var(--sidebar-ink); padding: 12px 12px;
+    background: linear-gradient(90deg, rgba(194,112,58,0.14), transparent 70%);
+    margin-bottom: 6px;
+  }
+  .tab-btn--hero:hover{ background: linear-gradient(90deg, rgba(194,112,58,0.24), transparent 70%); }
+  .tab-btn--hero.active{ background: var(--rust); border-left-color: var(--rust-dark); color:#fff; }
+
+  /* ---- Títulos das seções do menu ---- */
+  .tabs-group{
+    margin: 14px 0 4px; padding: 0 12px;
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--sidebar-ink-soft);
+    display: flex; align-items: center; gap: 8px; white-space: nowrap;
+  }
+  .tabs-group::after{ content:''; flex:1; height:1px; background: var(--sidebar-line); }
+
+  /* ---- Engrenagem de configurações ---- */
+  .sidebar-gear{
+    display: flex; align-items: center; gap: 9px; width: 100%;
+    font-family:'Inter', sans-serif; font-size: 12px; color: var(--sidebar-ink);
+    background: transparent; border: 1px solid var(--sidebar-line); border-radius: 6px;
+    padding: 8px 10px; cursor: pointer; text-align: left;
+  }
+  .sidebar-gear:hover{ border-color: var(--rust); color: var(--rust); }
+  .sidebar-gear svg{ width: 16px; height: 16px; flex-shrink: 0; }
+  .sidebar-gear:hover svg{ transform: rotate(35deg); }
+  .sidebar-gear svg{ transition: transform .25s ease; }
+
+  /* ---- Modal de configurações (reaproveita a moldura do seletor de export) ---- */
+  .set-body{ padding: 16px 20px 6px; overflow-y: auto; }
+  .set-section + .set-section{ margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--line); }
+  .set-h{
+    font-family:'Oswald','Archivo',sans-serif; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.14em; color: var(--rust-dark);
+    margin: 0 0 10px;
+  }
+  .set-seg{
+    display: inline-flex; gap: 4px; padding: 4px;
+    background: var(--paper); border: 1px solid var(--line-strong); border-radius: 8px;
+  }
+  .set-seg-btn{
+    font-family:'Inter', sans-serif; font-size: 12.5px; font-weight: 600;
+    color: var(--ink-soft); background: transparent; border: none; border-radius: 5px;
+    padding: 7px 18px; cursor: pointer;
+  }
+  .set-seg-btn:hover{ color: var(--ink); }
+  .set-seg-btn.is-on{ background: var(--rust); color: #fff; }
+  .set-note{ font-size: 11px; color: var(--ink-soft); margin: 9px 0 0; }
+  .set-account{ font-size: 12.5px; color: var(--ink); margin: 0 0 10px; }
 
   .sidebar-scrim{ display:none; }
   @media (max-width: 900px){
@@ -931,7 +984,7 @@
   .sidebar, .sidebar-scrim, .sidebar-toggle--floating,
   .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide,
   .icon-btn, .import-note, .dash-actions, .watermark, .welcome-greeting,
-  #view-trilha, #auth-gate, #welcome-screen, .export-menu-wrap,
+  #view-trilha, #view-fluxograma, #auth-gate, #welcome-screen, .export-menu-wrap,
   .flag-btn, .toggle-sub, .trilha-next{ display:none !important; }
 
   /* O checkbox de "Concluída" não imprime estado — vira um selo que mostra
@@ -1214,6 +1267,114 @@
   }
   .sidebar-signout:hover{ border-color: var(--rust); color: var(--rust); }
 
+
+  /* ================= Fluxogramas ================= */
+  .flux-tabs{
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line);
+  }
+  .flux-tab{
+    font-family:'Oswald','Archivo',sans-serif; font-size: 12px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em;
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: 6px 13px; cursor: pointer; white-space: nowrap;
+  }
+  .flux-tab:hover{ border-color: var(--rust); color: var(--rust); }
+  .flux-tab.is-on{ background: var(--rust); border-color: var(--rust); color: #fff; }
+  .flux-tabs-empty{ font-size: 12px; color: var(--ink-soft); }
+
+  .flux-tools{
+    display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .flux-tools-label{
+    font-size: 9.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--rust-dark);
+  }
+  .flux-hint{ font-size: 11px; color: var(--ink-soft); margin-left: auto; }
+  .flux-sel{
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    padding-left: 10px; margin-left: 4px; border-left: 1px solid var(--line-strong);
+  }
+  .flux-sel[hidden]{ display: none; }
+  .mini.is-danger{ border-color: var(--danger); color: var(--danger); }
+  .mini.is-on{ background: var(--rust); border-color: var(--rust); color: #fff; }
+
+  .flux-stage{
+    position: relative; overflow: auto;
+    height: min(66vh, 640px);
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    background: var(--paper);
+    box-shadow: var(--shadow-card);
+  }
+  .flux-canvas{
+    position: relative; width: 2400px; height: 1500px;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 20px 20px, 20px 20px;
+    opacity: 1;
+  }
+  .flux-links{ position: absolute; inset: 0; width: 100%; height: 100%; }
+  .flux-link{ stroke: var(--line-strong); stroke-width: 2; fill: none; }
+  .flux-link-hit{ stroke: transparent; stroke-width: 14; fill: none; cursor: pointer; }
+  .flux-link-hit:hover + .flux-link, .flux-link-hit:hover{ stroke-opacity: 1; }
+  .flux-link-g:hover .flux-link{ stroke: var(--danger); }
+  .flux-link-tmp{ stroke: var(--rust); stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
+  .flux-arrow{ fill: var(--line-strong); }
+  .flux-link-g:hover .flux-arrow{ fill: var(--danger); }
+
+  /* A camada de nós cobre a tela inteira; sem isto ela engoliria todo clique e
+     as ligações (que ficam no SVG por baixo) nunca seriam alcançáveis. */
+  .flux-nodes{ position: absolute; inset: 0; pointer-events: none; }
+  .flux-node{
+    position: absolute; box-sizing: border-box; pointer-events: auto;
+    cursor: grab; touch-action: none; user-select: none;
+  }
+  .flux-node.is-dragging{ cursor: grabbing; }
+  .flux-shape{
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    fill: var(--paper-card); stroke: var(--line-strong); stroke-width: 2;
+  }
+  .flux-node.is-sel .flux-shape{ stroke: var(--rust); stroke-width: 2.5; }
+  .flux-node-text{
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    padding: 10px 12px; box-sizing: border-box;
+    font-family:'Inter', sans-serif; font-size: 12.5px; line-height: 1.35; color: var(--ink);
+    overflow: hidden; word-break: break-word;
+  }
+  .flux-node[data-shape="decision"] .flux-node-text{ padding: 10px 22%; font-size: 11.5px; }
+  .flux-node[data-shape="terminal"] .flux-node-text{
+    font-family:'Oswald','Archivo',sans-serif; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px;
+  }
+  .flux-node.is-editing{ cursor: text; }
+  .flux-node.is-editing .flux-node-text{
+    outline: none; cursor: text; user-select: text; background: var(--paper-raised);
+  }
+  .flux-node-text:empty::before{ content: 'clique 2x'; color: var(--ink-soft); font-style: italic; }
+
+  .flux-port{
+    position: absolute; right: -7px; top: 50%; transform: translateY(-50%);
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--rust); border: 2px solid var(--paper);
+    cursor: crosshair; opacity: 0; transition: opacity .12s ease;
+  }
+  .flux-node:hover .flux-port, .flux-node.is-sel .flux-port{ opacity: 1; }
+  .flux-resize{
+    position: absolute; right: -4px; bottom: -4px; width: 12px; height: 12px;
+    border-right: 2px solid var(--rust); border-bottom: 2px solid var(--rust);
+    cursor: nwse-resize; opacity: 0; transition: opacity .12s ease;
+  }
+  .flux-node:hover .flux-resize, .flux-node.is-sel .flux-resize{ opacity: 1; }
+
+  .flux-empty{
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px; text-align: center;
+  }
+  .flux-empty p{ font-size: 13px; color: var(--ink-soft); margin: 0; max-width: 380px; }
+
   /* ================= Transição entre metodologias =================
      Uma cortina cobre a área de conteúdo, a view é trocada por baixo dela e a
      nova entra descendo. Cada metodologia tem seu próprio motivo animado. */
@@ -1379,6 +1540,26 @@
     75%{ transform: translate(178px, 10px); }
     82%{ transform: translate(200px, 20px); }
     100%{ transform: translate(234px, 20px); }
+  }
+
+  /* ---- Fluxograma: os blocos aparecem e as setas se desenham entre eles ---- */
+  .fx-fluxo svg{ display: block; width: min(52vw, 430px); height: auto; }
+  .fx-fnode{
+    transform-box: fill-box; transform-origin: center;
+    animation: fx-fnode 520ms cubic-bezier(.3,1.45,.5,1) var(--d, 0ms) both;
+  }
+  @keyframes fx-fnode{
+    0%{ opacity: 0; transform: scale(.3); }
+    60%{ opacity: 1; transform: scale(1); }
+    100%{ opacity: 1; transform: scale(1); }
+  }
+  .fx-fedge{
+    stroke-dasharray: 44; animation: fx-fedge 380ms ease-out var(--d, 0ms) both;
+  }
+  @keyframes fx-fedge{
+    0%{ stroke-dashoffset: 44; opacity: 0; }
+    18%{ opacity: 1; }
+    100%{ stroke-dashoffset: 0; opacity: 1; }
   }
 
   @media (prefers-reduced-motion: reduce){
@@ -1582,24 +1763,36 @@
       <button class="sidebar-toggle" id="sidebar-toggle" aria-label="Abrir ou fechar menu" title="Abrir ou fechar menu">
         <span></span><span></span><span></span>
       </button>
-      <span class="sidebar-brand-title">Metodologias</span>
+      <span class="sidebar-brand-title">Menu</span>
     </div>
     <nav class="tabs" id="tabs">
-      <button class="tab-btn active" data-view="trilha">🧭 &nbsp;Trilha</button>
+      <button class="tab-btn tab-btn--hero active" data-view="trilha">🧭 &nbsp;Trilha</button>
+
+      <p class="tabs-group">Medições</p>
       <button class="tab-btn" data-view="voc">🗣️ &nbsp;VoC</button>
-      <button class="tab-btn" data-view="pdca">🔄 &nbsp;PDCA</button>
       <button class="tab-btn" data-view="pareto">📉 &nbsp;Pareto</button>
+
+      <p class="tabs-group">Metodologias</p>
+      <button class="tab-btn" data-view="pdca">🔄 &nbsp;PDCA</button>
       <button class="tab-btn" data-view="ishikawa">🐟 &nbsp;Ishikawa</button>
       <button class="tab-btn" data-view="5porques">🪜 &nbsp;5 Porquês</button>
       <button class="tab-btn" data-view="5w2h">🗂️ &nbsp;5W2H</button>
       <button class="tab-btn" data-view="dmaic">🎯 &nbsp;DMAIC</button>
       <button class="tab-btn" data-view="fca">⚡ &nbsp;FCA</button>
-      <button class="tab-btn tab-btn--soon" disabled title="Em breve">+ &nbsp;em breve</button>
+
+      <p class="tabs-group">Ferramentas</p>
+      <button class="tab-btn" data-view="fluxograma">🔀 &nbsp;Fluxogramas</button>
     </nav>
     <div class="sidebar-footer">
-      <span id="sidebar-account-status" class="sidebar-account-status"></span>
-      <button id="btn-theme" class="sidebar-signout" type="button">Tema: escuro</button>
-      <button id="btn-sign-out" class="sidebar-signout" style="display:none">Sair</button>
+      <button id="btn-settings" class="sidebar-gear" type="button"
+              aria-haspopup="dialog" title="Configurações">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3.2"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+        <span>Configurações</span>
+      </button>
     </div>
   </aside>
   <button class="sidebar-toggle sidebar-toggle--floating" id="sidebar-toggle-floating"
@@ -1878,8 +2071,92 @@
     </div>
   </section>
 
+  <section id="view-fluxograma" class="view" style="display:none">
+    <div class="section-head">
+      <p class="eyebrow">Ferramentas</p>
+      <h2>Fluxogramas</h2>
+      <p class="sub">Desenhe o processo do jeito que ele acontece de verdade — com os desvios, as espera e os retrabalhos. Cada análise pode ter quantos fluxogramas precisar.</p>
+      <div class="toolbar">
+        <button class="ghost" id="btn-flux-new">Novo fluxograma</button>
+        <button class="ghost" id="btn-flux-rename">Renomear</button>
+        <button class="ghost" id="btn-flux-dup">Duplicar</button>
+        <button class="ghost" id="btn-flux-del">Excluir</button>
+        <span class="status" id="status-fluxograma">salvo</span>
+      </div>
+    </div>
+
+    <div class="flux-tabs" id="flux-tabs"></div>
+
+    <div class="flux-tools">
+      <span class="flux-tools-label">Adicionar</span>
+      <button class="mini" data-add-shape="terminal">⬭&nbsp; Início/Fim</button>
+      <button class="mini" data-add-shape="process">▭&nbsp; Processo</button>
+      <button class="mini" data-add-shape="decision">◇&nbsp; Decisão</button>
+      <button class="mini" data-add-shape="io">▱&nbsp; Dado</button>
+
+      <span class="flux-sel" id="flux-sel" hidden>
+        <span class="flux-tools-label">Forma</span>
+        <button class="mini" data-set-shape="terminal" title="Início/Fim">⬭</button>
+        <button class="mini" data-set-shape="process" title="Processo">▭</button>
+        <button class="mini" data-set-shape="decision" title="Decisão">◇</button>
+        <button class="mini" data-set-shape="io" title="Dado">▱</button>
+        <button class="mini" id="btn-flux-node-dup">Duplicar</button>
+        <button class="mini is-danger" id="btn-flux-node-del">Excluir</button>
+      </span>
+
+      <span class="flux-hint">Arraste pra mover · puxe a bolinha pra ligar · duplo clique edita o texto · canto redimensiona</span>
+    </div>
+
+    <div class="flux-stage" id="flux-stage">
+      <div class="flux-canvas" id="flux-canvas">
+        <svg class="flux-links" id="flux-links" aria-hidden="true">
+          <defs>
+            <marker id="flux-arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
+                    markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path class="flux-arrow" d="M 0 0 L 10 5 L 0 10 z"/>
+            </marker>
+          </defs>
+        </svg>
+        <div class="flux-nodes" id="flux-nodes"></div>
+      </div>
+      <div class="flux-empty" id="flux-empty" style="display:none">
+        <p>Nenhum fluxograma nesta análise ainda.</p>
+        <button class="ghost" id="btn-flux-first">Criar o primeiro fluxograma</button>
+      </div>
+    </div>
+  </section>
+
     </div>
   </main>
+</div>
+
+<div id="settings-modal" class="xp-backdrop" role="dialog" aria-modal="true" aria-labelledby="set-title">
+  <div class="xp-panel" style="max-width:460px">
+    <div class="xp-head">
+      <span class="xp-kicker">Preferências</span>
+      <h2 class="xp-title" id="set-title">Configurações</h2>
+      <p class="xp-sub">Aparência e conta.</p>
+    </div>
+    <div class="set-body">
+      <section class="set-section">
+        <h3 class="set-h">Tema</h3>
+        <div class="set-seg" id="set-theme" role="group" aria-label="Tema">
+          <button type="button" class="set-seg-btn" data-theme="dark">Escuro</button>
+          <button type="button" class="set-seg-btn" data-theme="light">Claro</button>
+        </div>
+        <p class="set-note">A escolha fica guardada neste navegador.</p>
+      </section>
+      <section class="set-section">
+        <h3 class="set-h">Conta</h3>
+        <p class="set-account" id="sidebar-account-status">—</p>
+        <button type="button" class="ghost" id="btn-sign-out" style="display:none">Sair da conta</button>
+      </section>
+    </div>
+    <div class="xp-foot">
+      <span class="xp-hint"></span>
+      <button type="button" class="xp-go" id="set-close">Fechar</button>
+    </div>
+  </div>
 </div>
 
 <div id="export-picker" class="xp-backdrop" role="dialog" aria-modal="true" aria-labelledby="xp-title">
@@ -1981,6 +2258,7 @@ async function switchAnalysis(id){
   await loadFca();
   await loadVoc();
   await loadPareto();
+  await loadFluxos();
   renderAnalysisSelector();
   trilhaToast = '';
   renderTrilha();
@@ -2001,6 +2279,8 @@ async function createNewAnalysis(name){
   fca = defaultFca();
   voc = defaultVoc();
   pareto = defaultPareto();
+  fluxos = defaultFluxos();
+  fluxoSel = null;
   try{
     await window.storage.set(keyIshikawa(currentId), JSON.stringify(state), false);
     await window.storage.set(keyPlan(currentId), JSON.stringify(plan), false);
@@ -2010,6 +2290,7 @@ async function createNewAnalysis(name){
     await window.storage.set(keyFca(currentId), JSON.stringify(fca), false);
     await window.storage.set(keyVoc(currentId), JSON.stringify(voc), false);
     await window.storage.set(keyPareto(currentId), JSON.stringify(pareto), false);
+    await window.storage.set(keyFluxo(currentId), JSON.stringify(fluxos), false);
   }catch(e){}
 
   renderAnalysisSelector();
@@ -2021,6 +2302,7 @@ async function createNewAnalysis(name){
   renderFca();
   renderVoc();
   renderPareto();
+  renderFluxo();
   trilhaToast = '';
   renderTrilha();
   if(document.getElementById('view-painel').style.display !== 'none') renderDashboard();
@@ -5405,31 +5687,57 @@ document.getElementById('trilha-problem').addEventListener('input', (e) => {
   renderTrilha();
 });
 
-/* ================= Tema (claro / escuro) ================= */
-(function initThemeToggle(){
-  const btn = document.getElementById('btn-theme');
-  if(!btn) return;
-  function label(){
-    const isLight = document.documentElement.dataset.theme === 'light';
-    btn.textContent = isLight ? 'Tema: claro' : 'Tema: escuro';
-    btn.title = isLight ? 'Mudar para o tema escuro' : 'Mudar para o tema claro';
+/* ================= Configurações (tema + conta) ================= */
+(function initSettings(){
+  const modal = document.getElementById('settings-modal');
+  const gear = document.getElementById('btn-settings');
+  const seg = document.getElementById('set-theme');
+  if(!modal || !gear || !seg) return;
+
+  const botoes = [...seg.querySelectorAll('.set-seg-btn')];
+
+  function marcar(){
+    const atual = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    botoes.forEach(b => {
+      const on = b.dataset.theme === atual;
+      b.classList.toggle('is-on', on);
+      b.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
   }
-  label();
-  btn.addEventListener('click', () => {
-    const isLight = document.documentElement.dataset.theme === 'light';
-    if(isLight){
-      delete document.documentElement.dataset.theme;
-      try{ localStorage.setItem('metodologias:tema', 'dark'); }catch(e){}
-    } else {
-      document.documentElement.dataset.theme = 'light';
-      try{ localStorage.setItem('metodologias:tema', 'light'); }catch(e){}
-    }
-    label();
+
+  function aplicarTema(tema){
+    if(tema === 'light') document.documentElement.dataset.theme = 'light';
+    else delete document.documentElement.dataset.theme;
+    try{ localStorage.setItem('metodologias:tema', tema); }catch(e){}
+    marcar();
+    // os SVGs leem as cores via cssVar() e precisam ser redesenhados
     const active = document.querySelector('.tab-btn.active[data-view]');
     const view = active ? active.dataset.view : null;
     if(view === 'pareto') renderParetoChart();
     if(view === 'ishikawa') requestAnimationFrame(drawBones);
+    if(view === 'fluxograma' && typeof renderFluxo === 'function') renderFluxo();
+  }
+
+  botoes.forEach(b => b.addEventListener('click', () => aplicarTema(b.dataset.theme)));
+
+  function fechar(){
+    modal.classList.remove('open');
+    document.removeEventListener('keydown', onKey);
+    gear.focus();
+  }
+  function onKey(e){ if(e.key === 'Escape') fechar(); }
+
+  gear.addEventListener('click', () => {
+    marcar();
+    if(typeof refreshAccountUi === 'function') refreshAccountUi();
+    modal.classList.add('open');
+    document.addEventListener('keydown', onKey);
+    document.getElementById('set-close').focus();
   });
+  document.getElementById('set-close').addEventListener('click', fechar);
+  modal.addEventListener('click', (e) => { if(e.target === modal) fechar(); });
+
+  marcar();
 })();
 
 /* ================= Painel (dashboard geral) ================= */
@@ -5538,14 +5846,14 @@ const FX_LABEL = {
   trilha:'Fluxo de trabalho', painel:'Visão geral', pdca:'Melhoria contínua',
   voc:'Voz do cliente', pareto:'Priorização', ishikawa:'Análise de causa raiz',
   '5porques':'Aprofundamento', '5w2h':'Plano de ação', dmaic:'Lean Six Sigma',
-  fca:'Resposta rápida a desvios'
+  fca:'Resposta rápida a desvios', fluxograma:'Desenho de processo'
 };
 // Views sem motivo próprio caem na animação de letras (o nome cruza a tela).
 const FX_PALAVRA = {
   voc:'VOC', pdca:'PDCA', dmaic:'DMAIC', fca:'FCA', '5w2h':'5W2H',
   trilha:'TRILHA', painel:'PAINEL'
 };
-const FX_DUR = { ishikawa: 900, pareto: 880, '5porques': 980 };
+const FX_DUR = { ishikawa: 900, pareto: 880, '5porques': 980, fluxograma: 980 };
 
 function fxSigla(texto){
   const chars = [...texto].map((c, i) =>
@@ -5617,7 +5925,28 @@ function fxEscada(){
   </svg></div>`;
 }
 
+function fxFluxoFx(){
+  return `<div class="fx-fluxo"><svg viewBox="0 0 282 170">
+    <defs><marker id="fxfa" viewBox="0 0 10 10" refX="9" refY="5"
+      markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="var(--rust)"/></marker></defs>
+    <g fill="var(--paper-raised)" stroke="var(--line-strong)" stroke-width="2">
+      <rect class="fx-fnode" x="8" y="10" width="78" height="34" rx="17" style="--d:0ms"/>
+      <rect class="fx-fnode" x="116" y="10" width="78" height="34" style="--d:130ms"/>
+      <polygon class="fx-fnode" points="155,74 197,108 155,142 113,108"
+               stroke="var(--rust)" style="--d:260ms"/>
+      <rect class="fx-fnode" x="222" y="91" width="52" height="34" style="--d:390ms"/>
+    </g>
+    <g fill="none" stroke="var(--rust)" stroke-width="2" stroke-linecap="round" marker-end="url(#fxfa)">
+      <path class="fx-fedge" d="M 86 27 L 112 27" style="--d:100ms"/>
+      <path class="fx-fedge" d="M 155 44 L 155 70" style="--d:230ms"/>
+      <path class="fx-fedge" d="M 197 108 L 218 108" style="--d:360ms"/>
+    </g>
+  </svg></div>`;
+}
+
 function fxMotivo(view){
+  if(view === 'fluxograma') return fxFluxoFx();
   if(view === 'ishikawa') return fxPeixe();
   if(view === 'pareto') return fxParetoFx();
   if(view === '5porques') return fxEscada();
@@ -5688,6 +6017,7 @@ function applyView(view){
   document.getElementById('view-5w2h').style.display = view === '5w2h' ? '' : 'none';
   document.getElementById('view-dmaic').style.display = view === 'dmaic' ? '' : 'none';
   document.getElementById('view-fca').style.display = view === 'fca' ? '' : 'none';
+  document.getElementById('view-fluxograma').style.display = view === 'fluxograma' ? '' : 'none';
   if(view === 'ishikawa') requestAnimationFrame(drawBones);
   if(view === 'voc') renderVoc();
   if(view === 'pareto') renderPareto();
@@ -5696,6 +6026,7 @@ function applyView(view){
   if(view === 'pdca') renderPdca();
   if(view === 'dmaic') renderDmaic();
   if(view === 'fca') renderFca();
+  if(view === 'fluxograma') renderFluxo();
   if(view === 'trilha') renderTrilha();
   if(view === 'painel') renderDashboard();
 }
@@ -5711,7 +6042,12 @@ const sidebarFloatEl = document.getElementById('sidebar-toggle-floating');
 function isMobileWidth(){ return window.innerWidth <= 900; }
 
 // O CSS escalona o recolhimento dos itens por --i (o de baixo sai primeiro).
-document.querySelectorAll('#tabs .tab-btn').forEach((btn, i) => btn.style.setProperty('--i', i));
+// Entram os títulos de seção junto, senão eles ficam parados enquanto o resto sai.
+(function(){
+  const itens = [...document.querySelectorAll('#tabs > *')];
+  itens.forEach((el, i) => el.style.setProperty('--i', i));
+  document.getElementById('tabs').style.setProperty('--n', itens.length - 1);
+})();
 
 let absorbTimer = null, absorbDelay = null;
 function pulseAbsorb(btn, delay){
@@ -5771,9 +6107,478 @@ async function startAppData(){
   await loadFca();
   await loadVoc();
   await loadPareto();
+  await loadFluxos();
   renderTrilha();
   // Painel fica oculto por padrão; renderDashboard() só roda quando a aba for reativada.
 }
+
+
+/* ================= Fluxogramas =================
+   Cada análise guarda vários fluxogramas. Os nós são divs posicionados em px
+   sobre uma tela rolável; a forma é um SVG esticado por dentro do nó (com
+   vector-effect pra a borda não deformar) e as ligações são um SVG só, por
+   cima do grid e por baixo dos nós. Nada disso entra na trilha nem no dossiê —
+   é ferramenta de desenho, não etapa de análise. */
+let fluxoSaveTimer = null;
+function keyFluxo(id){ return `analise:${id}:fluxos`; }
+function defaultFluxos(){ return { charts: [], activeId: null }; }
+let fluxos = defaultFluxos();
+let fluxoSel = null;      // id do nó selecionado
+
+const FLUX_SHAPES = {
+  terminal: '<rect x="2" y="2" width="96" height="96" rx="46" ry="46" vector-effect="non-scaling-stroke"/>',
+  process:  '<rect x="2" y="2" width="96" height="96" vector-effect="non-scaling-stroke"/>',
+  decision: '<polygon points="50,2 98,50 50,98 2,50" vector-effect="non-scaling-stroke"/>',
+  io:       '<polygon points="20,2 98,2 80,98 2,98" vector-effect="non-scaling-stroke"/>'
+};
+const FLUX_DEFAULTS = {
+  terminal: { w: 150, h: 56,  text: 'Início' },
+  process:  { w: 170, h: 70,  text: 'Etapa do processo' },
+  decision: { w: 170, h: 110, text: 'Decisão?' },
+  io:       { w: 170, h: 70,  text: 'Dado / documento' }
+};
+
+async function loadFluxos(){
+  try{
+    const res = await window.storage.get(keyFluxo(currentId), false);
+    const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+    fluxos = (parsed && Array.isArray(parsed.charts)) ? parsed : defaultFluxos();
+  }catch(e){ fluxos = defaultFluxos(); }
+  if(!fluxos.charts.some(c => c.id === fluxos.activeId)){
+    fluxos.activeId = fluxos.charts.length ? fluxos.charts[0].id : null;
+  }
+  fluxoSel = null;
+  renderFluxo();
+}
+
+function scheduleFluxoSave(){
+  const el = document.getElementById('status-fluxograma');
+  if(el) el.textContent = 'salvando…';
+  clearTimeout(fluxoSaveTimer);
+  fluxoSaveTimer = setTimeout(async () => {
+    try{
+      await window.storage.set(keyFluxo(currentId), JSON.stringify(fluxos), false);
+      if(el) el.textContent = 'salvo';
+    }catch(e){ if(el) el.textContent = 'não foi possível salvar'; }
+  }, 400);
+}
+
+function fluxoAtivo(){ return fluxos.charts.find(c => c.id === fluxos.activeId) || null; }
+
+function novoFluxo(nome){
+  const chart = { id: uid(), name: nome || `Fluxo ${fluxos.charts.length + 1}`, nodes: [], links: [] };
+  fluxos.charts.push(chart);
+  fluxos.activeId = chart.id;
+  fluxoSel = null;
+  scheduleFluxoSave();
+  renderFluxo();
+  return chart;
+}
+
+/* ---- geometria: onde a seta encosta na borda do nó ---- */
+function fluxoAnchor(n, tx, ty){
+  const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
+  const dx = tx - cx, dy = ty - cy;
+  if(!dx && !dy) return { x: cx, y: cy };
+  const hw = n.w / 2, hh = n.h / 2;
+  let t;
+  if(n.shape === 'decision'){
+    // losango: a borda é |dx|/hw + |dy|/hh = 1
+    t = 1 / (Math.abs(dx) / hw + Math.abs(dy) / hh);
+  } else {
+    t = Math.min(dx ? hw / Math.abs(dx) : Infinity, dy ? hh / Math.abs(dy) : Infinity);
+  }
+  return { x: cx + dx * t, y: cy + dy * t };
+}
+
+function renderFluxoTabs(){
+  const wrap = document.getElementById('flux-tabs');
+  wrap.innerHTML = '';
+  if(!fluxos.charts.length){
+    const s = document.createElement('span');
+    s.className = 'flux-tabs-empty';
+    s.textContent = 'Nenhum fluxograma ainda.';
+    wrap.appendChild(s);
+    return;
+  }
+  fluxos.charts.forEach(c => {
+    const b = document.createElement('button');
+    b.className = 'flux-tab' + (c.id === fluxos.activeId ? ' is-on' : '');
+    b.textContent = c.name;
+    b.addEventListener('click', () => {
+      if(c.id === fluxos.activeId) return;
+      fluxos.activeId = c.id;
+      fluxoSel = null;
+      scheduleFluxoSave();
+      renderFluxo();
+    });
+    wrap.appendChild(b);
+  });
+}
+
+function renderFluxoLinks(){
+  const svg = document.getElementById('flux-links');
+  const chart = fluxoAtivo();
+  // preserva os <defs> (o marcador da seta) e limpa o resto
+  [...svg.querySelectorAll('.flux-link-g, .flux-link-tmp')].forEach(el => el.remove());
+  if(!chart) return;
+  const byId = {};
+  chart.nodes.forEach(n => { byId[n.id] = n; });
+  chart.links.forEach(l => {
+    const a = byId[l.from], b = byId[l.to];
+    if(!a || !b) return;
+    const p1 = fluxoAnchor(a, b.x + b.w / 2, b.y + b.h / 2);
+    const p2 = fluxoAnchor(b, a.x + a.w / 2, a.y + a.h / 2);
+    const d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
+    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+    g.setAttribute('class', 'flux-link-g');
+    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    hit.setAttribute('class', 'flux-link-hit');
+    hit.setAttribute('d', d);
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    line.setAttribute('class', 'flux-link');
+    line.setAttribute('d', d);
+    line.setAttribute('marker-end', 'url(#flux-arrowhead)');
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    t.textContent = 'Clique para remover esta ligação';
+    g.append(hit, line, t);
+    // no grupo, não só na faixa invisível: a linha visível fica por cima dela
+    g.addEventListener('click', () => {
+      chart.links = chart.links.filter(x => x.id !== l.id);
+      scheduleFluxoSave();
+      renderFluxoLinks();
+    });
+    svg.appendChild(g);
+  });
+}
+
+function buildFluxoNode(n){
+  const el = document.createElement('div');
+  el.className = 'flux-node' + (n.id === fluxoSel ? ' is-sel' : '');
+  el.dataset.id = n.id;
+  el.dataset.shape = n.shape;
+  el.style.left = n.x + 'px';
+  el.style.top = n.y + 'px';
+  el.style.width = n.w + 'px';
+  el.style.height = n.h + 'px';
+
+  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.setAttribute('class', 'flux-shape');
+  svg.setAttribute('viewBox', '0 0 100 100');
+  svg.setAttribute('preserveAspectRatio', 'none');
+  svg.innerHTML = FLUX_SHAPES[n.shape] || FLUX_SHAPES.process;
+  el.appendChild(svg);
+
+  const txt = document.createElement('div');
+  txt.className = 'flux-node-text';
+  txt.textContent = n.text || '';
+  el.appendChild(txt);
+
+  const port = document.createElement('span');
+  port.className = 'flux-port';
+  port.title = 'Arraste até outro bloco para ligar';
+  el.appendChild(port);
+
+  const rz = document.createElement('span');
+  rz.className = 'flux-resize';
+  el.appendChild(rz);
+  return el;
+}
+
+function renderFluxo(){
+  const tabs = document.getElementById('flux-tabs');
+  if(!tabs) return;                       // view ainda não existe no DOM
+  renderFluxoTabs();
+  const chart = fluxoAtivo();
+  const nodesEl = document.getElementById('flux-nodes');
+  const canvas = document.getElementById('flux-canvas');
+  const vazio = document.getElementById('flux-empty');
+  nodesEl.innerHTML = '';
+  canvas.style.display = chart ? '' : 'none';
+  vazio.style.display = chart ? 'none' : '';
+  const sel = document.getElementById('flux-sel');
+  if(chart){
+    chart.nodes.forEach(n => nodesEl.appendChild(buildFluxoNode(n)));
+    renderFluxoLinks();
+  }
+  const temSel = !!(chart && chart.nodes.some(n => n.id === fluxoSel));
+  if(!temSel) fluxoSel = null;
+  sel.hidden = !temSel;
+  if(temSel){
+    const n = chart.nodes.find(x => x.id === fluxoSel);
+    sel.querySelectorAll('[data-set-shape]').forEach(b =>
+      b.classList.toggle('is-on', b.dataset.setShape === n.shape));
+  }
+}
+
+function fluxoSelecionar(id){
+  fluxoSel = id;
+  document.querySelectorAll('#flux-nodes .flux-node').forEach(el =>
+    el.classList.toggle('is-sel', el.dataset.id === id));
+  const chart = fluxoAtivo();
+  const sel = document.getElementById('flux-sel');
+  const n = chart && chart.nodes.find(x => x.id === id);
+  sel.hidden = !n;
+  if(n) sel.querySelectorAll('[data-set-shape]').forEach(b =>
+    b.classList.toggle('is-on', b.dataset.setShape === n.shape));
+}
+
+function fluxoAddNode(shape){
+  const chart = fluxoAtivo() || novoFluxo();
+  const d = FLUX_DEFAULTS[shape] || FLUX_DEFAULTS.process;
+  // empilha em diagonal a partir do canto, pra não nascer um em cima do outro
+  const k = chart.nodes.length;
+  const n = {
+    id: uid(), shape,
+    x: 80 + (k % 6) * 40, y: 70 + (k % 6) * 40,
+    w: d.w, h: d.h, text: d.text
+  };
+  chart.nodes.push(n);
+  scheduleFluxoSave();
+  renderFluxo();
+  fluxoSelecionar(n.id);
+}
+
+(function initFluxograma(){
+  const stage = document.getElementById('flux-stage');
+  if(!stage) return;
+  const canvas = document.getElementById('flux-canvas');
+  const nodesEl = document.getElementById('flux-nodes');
+  const svg = document.getElementById('flux-links');
+  const SNAP = 10;
+
+  function pos(e){
+    const r = canvas.getBoundingClientRect();
+    return { x: e.clientX - r.left, y: e.clientY - r.top };
+  }
+  function snap(v){ return Math.round(v / SNAP) * SNAP; }
+  function nodeById(id){
+    const c = fluxoAtivo();
+    return c ? c.nodes.find(n => n.id === id) : null;
+  }
+
+  let acao = null;   // {tipo, id, dx, dy, el, tmp}
+  let ultimoClique = { id: null, t: 0 };
+
+  function entrarEdicao(el){
+    const txt = el.querySelector('.flux-node-text');
+    el.classList.add('is-editing');
+    txt.setAttribute('contenteditable', 'true');
+    txt.focus();
+    const r = document.createRange();
+    r.selectNodeContents(txt);
+    const selo = window.getSelection();
+    selo.removeAllRanges();
+    selo.addRange(r);
+  }
+
+  nodesEl.addEventListener('pointerdown', (e) => {
+    const el = e.target.closest('.flux-node');
+    if(!el) return;
+    const n = nodeById(el.dataset.id);
+    if(!n) return;
+
+    if(e.target.closest('.flux-port')){
+      e.preventDefault();
+      const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      tmp.setAttribute('class', 'flux-link-tmp');
+      svg.appendChild(tmp);
+      acao = { tipo: 'ligar', id: n.id, tmp };
+      nodesEl.setPointerCapture(e.pointerId);
+      return;
+    }
+    if(e.target.closest('.flux-resize')){
+      e.preventDefault();
+      const p = pos(e);
+      acao = { tipo: 'redim', id: n.id, el, ox: p.x, oy: p.y, w0: n.w, h0: n.h };
+      nodesEl.setPointerCapture(e.pointerId);
+      return;
+    }
+    fluxoSelecionar(n.id);
+    if(el.classList.contains('is-editing')) return;   // deixa o cursor de texto agir
+
+    // O preventDefault que segura o arraste também impede o navegador de sintetizar
+    // o dblclick, então o duplo clique é medido aqui.
+    const agora = Date.now();
+    const duplo = ultimoClique.id === n.id && (agora - ultimoClique.t) < 400;
+    ultimoClique = { id: n.id, t: agora };
+    if(duplo){ entrarEdicao(el); return; }
+
+    e.preventDefault();
+    const p = pos(e);
+    acao = { tipo: 'mover', id: n.id, el, dx: p.x - n.x, dy: p.y - n.y };
+    el.classList.add('is-dragging');
+    nodesEl.setPointerCapture(e.pointerId);
+  });
+
+  nodesEl.addEventListener('pointermove', (e) => {
+    if(!acao) return;
+    const n = nodeById(acao.id);
+    if(!n) return;
+    const p = pos(e);
+    if(acao.tipo === 'mover'){
+      n.x = Math.max(0, snap(p.x - acao.dx));
+      n.y = Math.max(0, snap(p.y - acao.dy));
+      acao.el.style.left = n.x + 'px';
+      acao.el.style.top = n.y + 'px';
+      renderFluxoLinks();
+    } else if(acao.tipo === 'redim'){
+      n.w = Math.max(70, snap(acao.w0 + (p.x - acao.ox)));
+      n.h = Math.max(46, snap(acao.h0 + (p.y - acao.oy)));
+      acao.el.style.width = n.w + 'px';
+      acao.el.style.height = n.h + 'px';
+      renderFluxoLinks();
+    } else if(acao.tipo === 'ligar'){
+      const a = fluxoAnchor(n, p.x, p.y);
+      acao.tmp.setAttribute('d', `M ${a.x} ${a.y} L ${p.x} ${p.y}`);
+    }
+  });
+
+  function encerrar(e){
+    if(!acao) return;
+    if(acao.tipo === 'ligar'){
+      acao.tmp.remove();
+      const alvo = document.elementFromPoint(e.clientX, e.clientY);
+      const elAlvo = alvo && alvo.closest ? alvo.closest('.flux-node') : null;
+      const chart = fluxoAtivo();
+      if(elAlvo && chart){
+        const destino = elAlvo.dataset.id;
+        const jaTem = chart.links.some(l => l.from === acao.id && l.to === destino);
+        if(destino !== acao.id && !jaTem){
+          chart.links.push({ id: uid(), from: acao.id, to: destino });
+          scheduleFluxoSave();
+        }
+      }
+      renderFluxoLinks();
+    } else if(acao.tipo === 'mover' || acao.tipo === 'redim'){
+      if(acao.el) acao.el.classList.remove('is-dragging');
+      scheduleFluxoSave();
+    }
+    acao = null;
+  }
+  nodesEl.addEventListener('pointerup', encerrar);
+  nodesEl.addEventListener('pointercancel', encerrar);
+
+  /* ---- sair da edição grava o texto ---- */
+  nodesEl.addEventListener('focusout', (e) => {
+    const txt = e.target.closest && e.target.closest('.flux-node-text');
+    if(!txt) return;
+    const el = txt.closest('.flux-node');
+    el.classList.remove('is-editing');
+    txt.removeAttribute('contenteditable');
+    const n = nodeById(el.dataset.id);
+    const novo = txt.textContent.trim();
+    if(n && n.text !== novo){ n.text = novo; scheduleFluxoSave(); }
+  });
+
+  nodesEl.addEventListener('keydown', (e) => {
+    if(e.key === 'Escape' && e.target.closest('.flux-node-text')) e.target.blur();
+  });
+
+  // clique no vazio: tira a seleção
+  stage.addEventListener('pointerdown', (e) => {
+    if(e.target.closest('.flux-node')) return;
+    fluxoSelecionar(null);
+  });
+
+  // Delete apaga o nó selecionado (menos enquanto se edita texto)
+  document.addEventListener('keydown', (e) => {
+    if(e.key !== 'Delete' && e.key !== 'Backspace') return;
+    if(!fluxoSel) return;
+    if(document.getElementById('view-fluxograma').style.display === 'none') return;
+    const a = document.activeElement;
+    if(a && (a.isContentEditable || a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
+    e.preventDefault();
+    apagarNo();
+  });
+
+  function apagarNo(){
+    const chart = fluxoAtivo();
+    if(!chart || !fluxoSel) return;
+    chart.nodes = chart.nodes.filter(n => n.id !== fluxoSel);
+    chart.links = chart.links.filter(l => l.from !== fluxoSel && l.to !== fluxoSel);
+    fluxoSel = null;
+    scheduleFluxoSave();
+    renderFluxo();
+  }
+
+  /* ---- barra de ferramentas ---- */
+  document.querySelectorAll('[data-add-shape]').forEach(b =>
+    b.addEventListener('click', () => fluxoAddNode(b.dataset.addShape)));
+
+  document.querySelectorAll('[data-set-shape]').forEach(b =>
+    b.addEventListener('click', () => {
+      const n = nodeById(fluxoSel);
+      if(!n) return;
+      n.shape = b.dataset.setShape;
+      scheduleFluxoSave();
+      renderFluxo();
+      fluxoSelecionar(n.id);
+    }));
+
+  document.getElementById('btn-flux-node-del').addEventListener('click', apagarNo);
+  document.getElementById('btn-flux-node-dup').addEventListener('click', () => {
+    const chart = fluxoAtivo();
+    const n = nodeById(fluxoSel);
+    if(!chart || !n) return;
+    const copia = Object.assign({}, n, { id: uid(), x: n.x + 30, y: n.y + 30 });
+    chart.nodes.push(copia);
+    scheduleFluxoSave();
+    renderFluxo();
+    fluxoSelecionar(copia.id);
+  });
+
+  /* ---- gestão dos fluxogramas ---- */
+  function criar(){
+    const nome = prompt('Nome do fluxograma:', `Fluxo ${fluxos.charts.length + 1}`);
+    if(nome === null) return;
+    novoFluxo(nome.trim() || `Fluxo ${fluxos.charts.length + 1}`);
+  }
+  document.getElementById('btn-flux-new').addEventListener('click', criar);
+  document.getElementById('btn-flux-first').addEventListener('click', criar);
+
+  document.getElementById('btn-flux-rename').addEventListener('click', () => {
+    const c = fluxoAtivo();
+    if(!c){ alert('Crie um fluxograma primeiro.'); return; }
+    const nome = prompt('Novo nome:', c.name);
+    if(nome === null) return;
+    c.name = nome.trim() || c.name;
+    scheduleFluxoSave();
+    renderFluxoTabs();
+  });
+
+  document.getElementById('btn-flux-dup').addEventListener('click', () => {
+    const c = fluxoAtivo();
+    if(!c){ alert('Crie um fluxograma primeiro.'); return; }
+    // ids novos pros nós, e as ligações reapontadas pra eles
+    const mapa = {};
+    const nodes = c.nodes.map(n => {
+      const novo = Object.assign({}, n, { id: uid() });
+      mapa[n.id] = novo.id;
+      return novo;
+    });
+    const links = c.links
+      .filter(l => mapa[l.from] && mapa[l.to])
+      .map(l => ({ id: uid(), from: mapa[l.from], to: mapa[l.to] }));
+    const copia = { id: uid(), name: c.name + ' (cópia)', nodes, links };
+    fluxos.charts.push(copia);
+    fluxos.activeId = copia.id;
+    fluxoSel = null;
+    scheduleFluxoSave();
+    renderFluxo();
+  });
+
+  document.getElementById('btn-flux-del').addEventListener('click', () => {
+    const c = fluxoAtivo();
+    if(!c){ return; }
+    if(!confirm(`Excluir o fluxograma "${c.name}"? Não dá pra desfazer.`)) return;
+    fluxos.charts = fluxos.charts.filter(x => x.id !== c.id);
+    fluxos.activeId = fluxos.charts.length ? fluxos.charts[0].id : null;
+    fluxoSel = null;
+    scheduleFluxoSave();
+    renderFluxo();
+  });
+})();
 
 /* ================= Tela de entrada (nome, sem login) ================= */
 const SESSION_KEY = 'app:sessao';
