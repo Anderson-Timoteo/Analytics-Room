@@ -78,7 +78,7 @@
     --flux-edge: #4A3B2A;
   }
 
-  .analysis-bar, .problem-block, .summary, .action-card, .pdca-col, .dash-card, .why-chain, .cat-card {
+  .rail-list, .problem-block, .summary, .action-card, .pdca-col, .dash-card, .why-chain, .cat-card {
     box-shadow: var(--shadow-card);
   }
   * { box-sizing: border-box; }
@@ -196,57 +196,86 @@
     .sidebar-toggle.is-absorbing::after{ animation: none !important; }
   }
 
-  .main-content{ flex:1; min-width:0; padding: 32px 24px 80px; }
+  .main-content{
+    flex:1; min-width:0; padding: 26px 24px 80px;
+    display: flex; align-items: flex-start; gap: 22px;
+  }
+  .wrap{ flex: 1; min-width: 0; }
 
+  /* ---- Cabeçalho: só o título, centrado e enxuto ---- */
   header{
-    position: relative;
-    margin-bottom: 20px; padding: 14px 0 12px;
-    background: var(--hatch);
+    margin-bottom: 14px; padding: 2px 0 12px;
     border-bottom: 1px solid var(--line);
+    text-align: center;
   }
-
-  /* ---- Cabeçalho compacto: título à esquerda, resto recolhível ---- */
-  .head-line{
-    display: flex; align-items: baseline; gap: 12px;
-    padding-right: 180px;            /* espaço do relógio, que é absoluto */
-    min-height: 34px;
-  }
-  .head-line h1{
+  header h1{
     font-family:'Oswald','Archivo',sans-serif; font-weight: 700;
-    font-size: clamp(19px, 2.2vw, 26px); letter-spacing: 0.05em; line-height: 1.1;
+    font-size: clamp(18px, 2vw, 24px); letter-spacing: 0.08em; line-height: 1.15;
     text-transform: uppercase; color: var(--ink); margin: 0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .head-line .welcome-greeting{
-    margin: 0; text-align: left; white-space: nowrap;
-    overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  header .welcome-greeting{ margin: 4px 0 0; text-align: center; }
+
+  /* ---- Coluna da direita: relógio + análise / criar / exportar, nesta ordem ---- */
+  .side-rail{
+    width: 208px; flex-shrink: 0;
+    position: sticky; top: 18px; align-self: flex-start;
+    display: flex; flex-direction: column; gap: 10px;
   }
-  .head-toggle{
-    flex-shrink: 0; align-self: center;
-    width: 24px; height: 24px; padding: 0; cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    background: transparent; color: var(--ink-soft);
+  .rail-toggle{
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    font-family:'Oswald','Archivo',sans-serif; font-size: 11px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.16em;
+    color: var(--ink-soft); background: transparent; cursor: pointer;
     border: 1px solid var(--line-strong); border-radius: var(--radius);
+    padding: 7px 10px;
   }
-  .head-toggle svg{ width: 12px; height: 12px; transition: transform .22s ease; }
-  .head-toggle:hover{ border-color: var(--rust); color: var(--rust); }
-  .head-toggle[aria-expanded="false"] svg{ transform: rotate(-90deg); }
+  .rail-toggle:hover{ border-color: var(--rust); color: var(--rust); }
+  .rail-toggle svg{ width: 11px; height: 11px; flex-shrink: 0; transition: transform .22s ease; }
+  .rail-toggle[aria-expanded="false"] svg{ transform: rotate(-90deg); }
 
-  .head-body{
-    overflow: hidden;
+  .rail-body{
+    overflow: hidden; opacity: 1; max-height: 420px;
     transition: max-height .26s cubic-bezier(.4,0,.2,1), opacity .2s ease;
-    max-height: 260px; opacity: 1;
   }
-  .head-body.is-min{ max-height: 0; opacity: 0; }
+  /* aberto e parado: libera o overflow, senão o menu de exportação é cortado */
+  .rail-body.is-open{ overflow: visible; }
+  .rail-body.is-min{ max-height: 0; opacity: 0; }
 
-  @media (max-width: 720px){
-    .head-line{ padding-right: 0; flex-wrap: wrap; }
-    .head-line .welcome-greeting{ flex-basis: 100%; }
+  .rail-list{
+    list-style: none; margin: 0; padding: 10px 11px;
+    display: flex; flex-direction: column; gap: 11px;
+    background: var(--paper-card); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); box-shadow: var(--shadow-card);
+  }
+  .rail-item{ display: flex; flex-direction: column; gap: 5px; }
+  .rail-label{
+    display: flex; align-items: center; gap: 6px;
+    font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--rust-dark);
+  }
+  .rail-label i{
+    font-style: normal; font-size: 9px; font-weight: 700; letter-spacing: 0;
+    width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--rust); color: #fff;
+  }
+  .rail-btn{ width: 100%; text-align: center; }
+  .side-rail .export-menu-wrap{ display: block; }
+  .side-rail #status-analysis{ display: block; margin-top: 8px; text-align: center; }
+
+  @media (max-width: 900px){
+    .main-content{ flex-direction: column; gap: 0; }
+    .side-rail{
+      width: 100%; position: static; order: -1;
+      flex-direction: row; align-items: flex-start; gap: 10px; margin-bottom: 14px;
+    }
+    .rail-body{ flex: 1; max-height: 260px; }
+    .rail-list{ flex-direction: row; align-items: flex-end; }
+    .rail-item{ flex: 1; min-width: 150px; }
   }
 
   /* ===== Relogio do cabecalho (data + hora com segundos) ===== */
   .clock-widget{
-    position: absolute; top: 8px; right: 0; z-index: 3;
     display: flex; align-items: center; gap: 11px;
     padding: 9px 15px 9px 13px;
     border: 1px solid var(--line); border-radius: var(--radius);
@@ -294,21 +323,18 @@
     .clock-pulse::after{ animation: none; }
   }
   @media (max-width: 900px){
-    .clock-widget{
-      position: static; width: max-content; margin: 0 0 18px auto;
-      padding: 7px 12px 7px 10px; gap: 9px;
-    }
+    .clock-widget{ padding: 7px 12px 7px 10px; gap: 9px; }
     .clock-hm{ font-size: 21px; }
     .clock-sec{ font-size: 12px; }
     .clock-date{ font-size: 9.5px; letter-spacing: 0.14em; }
   }
   .eyebrow{
-    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
-    color: var(--rust-dark); margin: 0 0 6px;
+    font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: var(--rust-dark); margin: 0 0 5px;
   }
   h1{ font-size: 30px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
-  h2{ font-size: 26px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
-  .sub{ font-size: 13.5px; color: var(--ink-soft); margin: 0; max-width: 620px; line-height: 1.55; }
+  h2{ font-size: 21px; font-weight: 700; margin: 0 0 5px; color: var(--ink); }
+  .sub{ font-size: 12.5px; color: var(--ink-soft); margin: 0; max-width: 620px; line-height: 1.5; }
 
   .tabs{ display:flex; flex-direction:column; gap:4px; margin-top:0; flex-wrap:nowrap; }
   .tab-btn{
@@ -395,20 +421,18 @@
     .main-content{ width:100%; padding: 24px 16px 80px; }
   }
 
-  .section-head{ margin: 34px 0 22px; padding-top: 22px; border-top: 1px solid var(--line); }
-  .view:first-of-type .section-head{ margin-top: 26px; }
+  .section-head{
+    margin: 22px 0 18px; padding-top: 16px;
+    border-top: 1px solid var(--line); text-align: center;
+  }
+  .view:first-of-type .section-head{ margin-top: 4px; padding-top: 0; border-top: none; }
+  .section-head .sub{ margin-left: auto; margin-right: auto; }
+  .section-head .toolbar{ justify-content: center; margin-top: 14px; }
 
-  .analysis-bar{
-    display:flex; align-items:center; gap:10px; margin-top:18px; flex-wrap:wrap;
-    padding:10px 12px; background: var(--paper-card); border:1px solid var(--line-strong); border-radius:var(--radius);
-  }
-  .analysis-label{
-    font-size: 10px; letter-spacing: 0.09em; text-transform: uppercase; color: var(--rust-dark);
-  }
   #analysis-select{
     font-family:'Inter', sans-serif; font-size:12.5px;
     background: transparent; border:1px solid var(--line-strong); border-radius:var(--radius);
-    padding:7px 10px; color: var(--ink); flex:1; min-width:200px;
+    padding:7px 9px; color: var(--ink); width:100%; min-width:0;
   }
   #analysis-select:focus{ outline:none; border-color: var(--rust); }
   .archive-btn{ border-color: var(--rust); color: var(--rust-dark); }
@@ -1017,8 +1041,8 @@
     box-shadow:none !important; background:#fff !important;
   }
   .app-shell{ display:block; }
-  .sidebar, .sidebar-scrim, .sidebar-toggle--floating,
-  .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide,
+  .sidebar, .sidebar-scrim, .sidebar-toggle--floating, .side-rail,
+  .tabs, .toolbar, .add-row, .add-row--wide,
   .icon-btn, .import-note, .dash-actions, .watermark, .welcome-greeting,
   #view-trilha, #view-fluxograma, #view-kanban, #auth-gate, #welcome-screen, .export-menu-wrap,
   .flag-btn, .toggle-sub, .trilha-next{ display:none !important; }
@@ -1037,7 +1061,7 @@
   }
   .action-card.is-done{ opacity:1 !important; }
   header{ display:none !important; }
-  .main-content{ padding:0 !important; }
+  .main-content{ padding:0 !important; display:block !important; }
   .wrap{ max-width:none !important; }
 
   .cat-card, .action-card, .pdca-card, .why-chain, .dash-card,
@@ -1900,45 +1924,8 @@
     <div class="wrap">
 
       <header>
-        <div class="clock-widget" id="clock-widget">
-          <span class="clock-pulse" aria-hidden="true"></span>
-          <div>
-            <div class="clock-time">
-              <span class="clock-hm" id="clock-hm">--:--</span><span class="clock-sec" id="clock-sec">--</span>
-            </div>
-            <div class="clock-date" id="clock-date">—</div>
-          </div>
-        </div>
-
-        <div class="head-line">
-          <button class="head-toggle" id="btn-head-toggle" type="button"
-                  aria-expanded="true" aria-controls="head-body" title="Minimizar cabeçalho">
-            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5"
-                 fill="none" stroke="currentColor" stroke-width="1.8"
-                 stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <h1 id="app-title-h1">Sala de Análises</h1>
-          <p class="welcome-greeting" id="user-greeting"></p>
-        </div>
-
-        <div class="head-body" id="head-body">
-        <div class="analysis-bar">
-          <span class="analysis-label">Análise</span>
-          <select id="analysis-select"></select>
-          <button class="ghost" id="btn-new-analysis">Nova análise</button>
-          
-          <div class="export-menu-wrap">
-  <button class="ghost archive-btn" id="btn-export-menu-toggle">Exportar dados</button>
-  <div id="export-menu" class="export-menu" style="display:none">
-    <button class="export-menu-item" id="btn-export-xlsx">📊 Excel (.xlsx)</button>
-    <button class="export-menu-item" id="btn-archive-analysis">📄 SQL</button>
-    <button class="export-menu-item" id="btn-export-pdf">🖨️ PDF</button>
-  </div>
-</div>
-
-          <span class="status" id="status-analysis"></span>
-        </div>
-        </div>
+        <h1 id="app-title-h1">Sala de Análises</h1>
+        <p class="welcome-greeting" id="user-greeting"></p>
       </header>
 
   <section id="view-trilha" class="view">
@@ -2235,6 +2222,51 @@
   </section>
 
     </div>
+
+    <aside class="side-rail" id="side-rail" aria-label="Análise atual">
+      <div class="clock-widget" id="clock-widget">
+        <span class="clock-pulse" aria-hidden="true"></span>
+        <div>
+          <div class="clock-time">
+            <span class="clock-hm" id="clock-hm">--:--</span><span class="clock-sec" id="clock-sec">--</span>
+          </div>
+          <div class="clock-date" id="clock-date">—</div>
+        </div>
+      </div>
+
+      <button class="rail-toggle" id="btn-head-toggle" type="button"
+              aria-expanded="true" aria-controls="head-body" title="Recolher painel">
+        <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5"
+             fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>Análise</span>
+      </button>
+
+      <div class="rail-body" id="head-body">
+        <ol class="rail-list">
+          <li class="rail-item">
+            <span class="rail-label"><i>1</i> Análise</span>
+            <select id="analysis-select"></select>
+          </li>
+          <li class="rail-item">
+            <span class="rail-label"><i>2</i> Criar</span>
+            <button class="ghost rail-btn" id="btn-new-analysis">Nova análise</button>
+          </li>
+          <li class="rail-item">
+            <span class="rail-label"><i>3</i> Exportar</span>
+            <div class="export-menu-wrap">
+              <button class="ghost archive-btn rail-btn" id="btn-export-menu-toggle">Exportar dados</button>
+              <div id="export-menu" class="export-menu" style="display:none">
+                <button class="export-menu-item" id="btn-export-xlsx">📊 Excel (.xlsx)</button>
+                <button class="export-menu-item" id="btn-archive-analysis">📄 SQL</button>
+                <button class="export-menu-item" id="btn-export-pdf">🖨️ PDF</button>
+              </div>
+            </div>
+          </li>
+        </ol>
+        <span class="status" id="status-analysis"></span>
+      </div>
+    </aside>
   </main>
 </div>
 
@@ -5862,13 +5894,16 @@ document.getElementById('trilha-problem').addEventListener('input', (e) => {
 
   function aplicar(min, salvar){
     body.classList.toggle('is-min', min);
+    body.classList.remove('is-open');
+    if(!min) clearTimeout(body._t), body._t = setTimeout(() => body.classList.add('is-open'), 280);
     btn.setAttribute('aria-expanded', min ? 'false' : 'true');
-    btn.title = min ? 'Mostrar barra de análise' : 'Minimizar cabeçalho';
+    btn.title = min ? 'Mostrar painel da análise' : 'Recolher painel';
     if(salvar){ try{ localStorage.setItem(CHAVE, min ? 'min' : 'full'); }catch(e){} }
   }
 
   let inicial = false;
   try{ inicial = localStorage.getItem(CHAVE) === 'min'; }catch(e){}
+  if(!inicial) body.classList.add('is-open');
   // sem transição na carga, senão a barra "desaba" na frente do usuário
   const t = body.style.transition;
   body.style.transition = 'none';
@@ -6192,7 +6227,7 @@ function switchView(view){
   const dur = FX_DUR[view] || 860;
   fxClear();
   // a cortina começa onde o conteúdo começa, pra não piscar por cima do menu
-  fxEl.style.left = Math.round(document.querySelector('.main-content').getBoundingClientRect().left) + 'px';
+  fxEl.style.left = Math.round(document.querySelector('.wrap').getBoundingClientRect().left) + 'px';
   fxEl.style.setProperty('--fx-dur', dur + 'ms');
   fxEl.innerHTML = '<div class="view-fx-veil"></div>' +
     '<div class="view-fx-stage">' + fxMotivo(view) +
