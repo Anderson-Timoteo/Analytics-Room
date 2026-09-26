@@ -41,6 +41,9 @@
        claro, senão a silhueta some no fundo quase preto. */
     --fx-sil-a: #100C09;
     --fx-sil-b: #C07A42;
+    /* Linhas do fluxograma: no escuro precisam ser MAIS CLARAS que o fundo. */
+    --flux-grid: #33302C;
+    --flux-edge: #A79C90;
   }
 
   /* ===== Tema claro (o visual anterior, preservado) ===== */
@@ -70,6 +73,9 @@
     --hatch: repeating-linear-gradient(45deg, rgba(33,27,21,0.02) 0 1px, transparent 1px 24px);
     --fx-sil-a: #14100B;
     --fx-sil-b: #5A3418;
+    /* No claro, mais ESCURAS que o fundo. */
+    --flux-grid: #C6B79C;
+    --flux-edge: #4A3B2A;
   }
 
   .analysis-bar, .problem-block, .summary, .action-card, .pdca-col, .dash-card, .why-chain, .cat-card {
@@ -194,14 +200,53 @@
 
   header{
     position: relative;
-    margin-bottom: 28px; padding: 22px 0 20px;
+    margin-bottom: 20px; padding: 14px 0 12px;
     background: var(--hatch);
     border-bottom: 1px solid var(--line);
   }
 
+  /* ---- Cabeçalho compacto: título à esquerda, resto recolhível ---- */
+  .head-line{
+    display: flex; align-items: baseline; gap: 12px;
+    padding-right: 180px;            /* espaço do relógio, que é absoluto */
+    min-height: 34px;
+  }
+  .head-line h1{
+    font-family:'Oswald','Archivo',sans-serif; font-weight: 700;
+    font-size: clamp(19px, 2.2vw, 26px); letter-spacing: 0.05em; line-height: 1.1;
+    text-transform: uppercase; color: var(--ink); margin: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .head-line .welcome-greeting{
+    margin: 0; text-align: left; white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis; min-width: 0;
+  }
+  .head-toggle{
+    flex-shrink: 0; align-self: center;
+    width: 24px; height: 24px; padding: 0; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    background: transparent; color: var(--ink-soft);
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+  }
+  .head-toggle svg{ width: 12px; height: 12px; transition: transform .22s ease; }
+  .head-toggle:hover{ border-color: var(--rust); color: var(--rust); }
+  .head-toggle[aria-expanded="false"] svg{ transform: rotate(-90deg); }
+
+  .head-body{
+    overflow: hidden;
+    transition: max-height .26s cubic-bezier(.4,0,.2,1), opacity .2s ease;
+    max-height: 260px; opacity: 1;
+  }
+  .head-body.is-min{ max-height: 0; opacity: 0; }
+
+  @media (max-width: 720px){
+    .head-line{ padding-right: 0; flex-wrap: wrap; }
+    .head-line .welcome-greeting{ flex-basis: 100%; }
+  }
+
   /* ===== Relogio do cabecalho (data + hora com segundos) ===== */
   .clock-widget{
-    position: absolute; top: 18px; right: 0; z-index: 3;
+    position: absolute; top: 8px; right: 0; z-index: 3;
     display: flex; align-items: center; gap: 11px;
     padding: 9px 15px 9px 13px;
     border: 1px solid var(--line); border-radius: var(--radius);
@@ -262,15 +307,6 @@
     color: var(--rust-dark); margin: 0 0 6px;
   }
   h1{ font-size: 30px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
-  .title-centered{
-    text-align: center; margin: 4px 0 22px;
-    font-family: 'Oswald', 'Archivo', sans-serif; font-weight: 700;
-    font-size: clamp(28px, 4vw, 42px); letter-spacing: 0.05em; line-height: 1.1;
-  }
-  .title-centered::after{
-    content: ""; display: block; width: 52px; height: 3px;
-    background: var(--rust); margin: 12px auto 0;
-  }
   h2{ font-size: 26px; font-weight: 700; margin: 0 0 6px; color: var(--ink); }
   .sub{ font-size: 13.5px; color: var(--ink-soft); margin: 0; max-width: 620px; line-height: 1.55; }
 
@@ -984,7 +1020,7 @@
   .sidebar, .sidebar-scrim, .sidebar-toggle--floating,
   .analysis-bar, .tabs, .toolbar, .add-row, .add-row--wide,
   .icon-btn, .import-note, .dash-actions, .watermark, .welcome-greeting,
-  #view-trilha, #view-fluxograma, #auth-gate, #welcome-screen, .export-menu-wrap,
+  #view-trilha, #view-fluxograma, #view-kanban, #auth-gate, #welcome-screen, .export-menu-wrap,
   .flag-btn, .toggle-sub, .trilha-next{ display:none !important; }
 
   /* O checkbox de "Concluída" não imprime estado — vira um selo que mostra
@@ -1268,7 +1304,54 @@
   .sidebar-signout:hover{ border-color: var(--rust); color: var(--rust); }
 
 
-  /* ================= Fluxogramas ================= */
+  /* ================= Kanban ================= */
+  .kb-board{
+    display: grid; grid-template-columns: repeat(3, minmax(230px, 1fr));
+    gap: 12px; overflow-x: auto; padding-bottom: 6px; align-items: start;
+  }
+  .kb-col{
+    background: var(--paper-card); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); padding: 10px; min-height: 140px;
+  }
+  .kb-col.is-over{ border-color: var(--rust); background: var(--moss-bg); }
+  .kb-col h3{
+    display: flex; align-items: center; gap: 8px; margin: 0 0 10px;
+    font-family:'Oswald','Archivo',sans-serif; font-size: 12.5px; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.1em; color: var(--ink);
+  }
+  .kb-col h3 span{
+    margin-left: auto; font-family:'Inter',sans-serif; font-size: 11px;
+    font-weight: 600; letter-spacing: 0; color: var(--ink-soft);
+  }
+  .kb-col h3::before{ content:''; width: 8px; height: 8px; border-radius: 50%; background: var(--steel); }
+  .kb-col[data-col="doing"] h3::before{ background: var(--rust); }
+  .kb-col[data-col="done"] h3::before{ background: var(--moss); }
+
+  .kb-card{
+    background: var(--paper-raised); border: 1px solid var(--line);
+    border-left: 3px solid var(--steel);
+    border-radius: var(--radius); padding: 9px 10px; margin-bottom: 8px; cursor: grab;
+  }
+  .kb-card:last-child{ margin-bottom: 0; }
+  .kb-card.is-drag{ opacity: .45; }
+  .kb-card[data-origem="5w2h"]{ border-left-color: var(--rust); }
+  .kb-card[data-origem="fca"]{ border-left-color: var(--danger); }
+  .kb-title{ font-size: 12.5px; color: var(--ink); line-height: 1.4; word-break: break-word; }
+  .kb-meta{ display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+  .kb-chip{
+    font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600;
+    padding: 2px 6px; border-radius: 2px; border: 1px solid var(--line-strong); color: var(--ink-soft);
+  }
+  .kb-chip.is-src{ border-color: var(--rust); color: var(--rust-dark); }
+  .kb-row{ display: flex; align-items: center; gap: 5px; margin-top: 8px; }
+  .kb-row .mini{ padding: 2px 8px; font-size: 11px; }
+  .kb-row .kb-del{ margin-left: auto; border-color: var(--danger); color: var(--danger); }
+  .kb-empty{ font-size: 11.5px; color: var(--ink-soft); font-style: italic; }
+
+  /* ================= Fluxogramas =================
+     Tudo num SVG só: um <g> faz de viewport (pan/zoom) e as formas são
+     desenhadas dentro dele. A altura de cada bloco sai do texto quebrado em
+     linhas, então o bloco cresce junto com o conteúdo. */
   .flux-tabs{
     display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
     margin: 0 0 12px; padding-bottom: 10px; border-bottom: 1px solid var(--line);
@@ -1285,95 +1368,91 @@
   .flux-tabs-empty{ font-size: 12px; color: var(--ink-soft); }
 
   .flux-tools{
-    display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 10px;
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
   }
   .flux-tools-label{
     font-size: 9.5px; font-weight: 600; letter-spacing: 0.16em; text-transform: uppercase;
     color: var(--rust-dark);
   }
-  .flux-hint{ font-size: 11px; color: var(--ink-soft); margin-left: auto; }
-  .flux-sel{
-    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
-    padding-left: 10px; margin-left: 4px; border-left: 1px solid var(--line-strong);
+  .flux-tools .mini{ display: inline-flex; align-items: center; gap: 6px; }
+  .flux-tools .mini svg{ width: 20px; height: 14px; }
+  .flux-zoom{
+    display: flex; align-items: center; gap: 6px;
+    margin-left: auto; padding-left: 10px; border-left: 1px solid var(--line-strong);
   }
-  .flux-sel[hidden]{ display: none; }
-  .mini.is-danger{ border-color: var(--danger); color: var(--danger); }
-  .mini.is-on{ background: var(--rust); border-color: var(--rust); color: #fff; }
 
   .flux-stage{
-    position: relative; overflow: auto;
-    height: min(66vh, 640px);
+    position: relative; overflow: hidden;
+    height: min(68vh, 660px);
     border: 1px solid var(--line-strong); border-radius: var(--radius);
-    background: var(--paper);
-    box-shadow: var(--shadow-card);
-  }
-  .flux-canvas{
-    position: relative; width: 2400px; height: 1500px;
+    background-color: var(--paper);
     background-image:
-      linear-gradient(var(--line) 1px, transparent 1px),
-      linear-gradient(90deg, var(--line) 1px, transparent 1px);
-    background-size: 20px 20px, 20px 20px;
-    opacity: 1;
+      linear-gradient(var(--flux-grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--flux-grid) 1px, transparent 1px);
+    background-size: 20px 20px;
+    box-shadow: var(--shadow-card);
+    touch-action: none;
   }
-  .flux-links{ position: absolute; inset: 0; width: 100%; height: 100%; }
-  .flux-link{ stroke: var(--line-strong); stroke-width: 2; fill: none; }
-  .flux-link-hit{ stroke: transparent; stroke-width: 14; fill: none; cursor: pointer; }
-  .flux-link-hit:hover + .flux-link, .flux-link-hit:hover{ stroke-opacity: 1; }
-  .flux-link-g:hover .flux-link{ stroke: var(--danger); }
-  .flux-link-tmp{ stroke: var(--rust); stroke-width: 2; stroke-dasharray: 6 5; fill: none; }
-  .flux-arrow{ fill: var(--line-strong); }
-  .flux-link-g:hover .flux-arrow{ fill: var(--danger); }
-
-  /* A camada de nós cobre a tela inteira; sem isto ela engoliria todo clique e
-     as ligações (que ficam no SVG por baixo) nunca seriam alcançáveis. */
-  .flux-nodes{ position: absolute; inset: 0; pointer-events: none; }
-  .flux-node{
-    position: absolute; box-sizing: border-box; pointer-events: auto;
-    cursor: grab; touch-action: none; user-select: none;
-  }
-  .flux-node.is-dragging{ cursor: grabbing; }
-  .flux-shape{
-    position: absolute; inset: 0; width: 100%; height: 100%;
-    fill: var(--paper-card); stroke: var(--line-strong); stroke-width: 2;
-  }
-  .flux-node.is-sel .flux-shape{ stroke: var(--rust); stroke-width: 2.5; }
-  .flux-node-text{
-    position: absolute; inset: 0;
-    display: flex; align-items: center; justify-content: center; text-align: center;
-    padding: 10px 12px; box-sizing: border-box;
-    font-family:'Inter', sans-serif; font-size: 12.5px; line-height: 1.35; color: var(--ink);
-    overflow: hidden; word-break: break-word;
-  }
-  .flux-node[data-shape="decision"] .flux-node-text{ padding: 10px 22%; font-size: 11.5px; }
-  .flux-node[data-shape="terminal"] .flux-node-text{
-    font-family:'Oswald','Archivo',sans-serif; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.06em; font-size: 12px;
-  }
-  .flux-node.is-editing{ cursor: text; }
-  .flux-node.is-editing .flux-node-text{
-    outline: none; cursor: text; user-select: text; background: var(--paper-raised);
-  }
-  .flux-node-text:empty::before{ content: 'clique 2x'; color: var(--ink-soft); font-style: italic; }
-
-  .flux-port{
-    position: absolute; right: -7px; top: 50%; transform: translateY(-50%);
-    width: 14px; height: 14px; border-radius: 50%;
-    background: var(--rust); border: 2px solid var(--paper);
-    cursor: crosshair; opacity: 0; transition: opacity .12s ease;
-  }
-  .flux-node:hover .flux-port, .flux-node.is-sel .flux-port{ opacity: 1; }
-  .flux-resize{
-    position: absolute; right: -4px; bottom: -4px; width: 12px; height: 12px;
-    border-right: 2px solid var(--rust); border-bottom: 2px solid var(--rust);
-    cursor: nwse-resize; opacity: 0; transition: opacity .12s ease;
-  }
-  .flux-node:hover .flux-resize, .flux-node.is-sel .flux-resize{ opacity: 1; }
+  .flux-svg{ position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; }
+  .flux-svg:active{ cursor: grabbing; }
+  .flux-svg .node{ cursor: move; }
+  .flux-svg .port{ opacity: 0; transition: opacity .12s ease; cursor: crosshair; }
+  .flux-svg .node:hover .port, .flux-svg .node.sel .port{ opacity: 1; }
+  .flux-svg .edge{ cursor: pointer; }
 
   .flux-empty{
     position: absolute; inset: 0; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 14px; text-align: center;
+    align-items: center; justify-content: center; gap: 12px; text-align: center;
+    padding: 24px; pointer-events: none;
   }
-  .flux-empty p{ font-size: 13px; color: var(--ink-soft); margin: 0; max-width: 380px; }
+  /* o display:flex acima vence o atributo hidden do UA — precisa ser explícito */
+  .flux-empty[hidden]{ display: none; }
+  .flux-empty strong{
+    font-family:'Oswald','Archivo',sans-serif; font-size: 16px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink);
+  }
+  .flux-empty span{ font-size: 12.5px; color: var(--ink-soft); max-width: 420px; line-height: 1.55; }
+  .flux-empty button{ pointer-events: auto; }
+
+  .flux-selbar{
+    position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
+    display: flex; gap: 6px; padding: 7px 9px; z-index: 4;
+    background: var(--paper-card); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  .flux-selbar[hidden]{ display: none; }
+  .mini.is-danger{ border-color: var(--danger); color: var(--danger); }
+  .mini.is-on{ background: var(--rust); border-color: var(--rust); color: #fff; }
+  .flux-hint{ font-size: 11px; color: var(--ink-soft); margin: 9px 0 0; line-height: 1.5; }
+
+  /* ---- modal de edição da forma ---- */
+  .fn-chips{ display: flex; flex-wrap: wrap; gap: 6px; }
+  .fn-chip{
+    display: inline-flex; align-items: center; gap: 7px;
+    font-family:'Inter', sans-serif; font-size: 12px; color: var(--ink-soft);
+    background: transparent; border: 1px solid var(--line-strong);
+    border-radius: var(--radius); padding: 7px 11px; cursor: pointer;
+  }
+  .fn-chip svg{ width: 22px; height: 15px; }
+  .fn-chip:hover{ border-color: var(--rust); color: var(--rust); }
+  .fn-chip[aria-pressed="true"]{ background: var(--rust); border-color: var(--rust); color: #fff; }
+  .fn-swatch{
+    width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--line-strong);
+  }
+  .fn-swatch[aria-pressed="true"]{ box-shadow: 0 0 0 2px var(--paper-card), 0 0 0 4px var(--rust); }
+  #fn-text{
+    width: 100%; min-height: 76px; resize: vertical;
+    font-family:'Inter', sans-serif; font-size: 13px; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); padding: 9px 11px;
+  }
+  #fn-text:focus, #fe-text:focus{ outline: none; border-color: var(--rust); }
+  #fe-text{
+    width: 100%; font-family:'Inter', sans-serif; font-size: 13px; color: var(--ink);
+    background: var(--paper); border: 1px solid var(--line-strong);
+    border-radius: var(--radius); padding: 9px 11px;
+  }
 
   /* ================= Transição entre metodologias =================
      Uma cortina cobre a área de conteúdo, a view é trocada por baixo dela e a
@@ -1540,6 +1619,21 @@
     75%{ transform: translate(178px, 10px); }
     82%{ transform: translate(200px, 20px); }
     100%{ transform: translate(234px, 20px); }
+  }
+
+  /* ---- Kanban: as colunas surgem e um cartão atravessa até a última ---- */
+  .fx-kanban svg{ display: block; width: min(50vw, 400px); height: auto; }
+  .fx-kcard{
+    transform-box: fill-box; transform-origin: center;
+    animation: fx-fnode 480ms cubic-bezier(.3,1.4,.5,1) var(--d, 0ms) both;
+  }
+  .fx-kmove{ animation: fx-kmove 900ms cubic-bezier(.5,0,.3,1) both; }
+  @keyframes fx-kmove{
+    0%{ transform: translate(0, 0); opacity: 0; }
+    14%{ transform: translate(0, 0); opacity: 1; }
+    50%{ transform: translate(90px, -28px); opacity: 1; }
+    86%{ transform: translate(180px, -56px); opacity: 1; }
+    100%{ transform: translate(180px, -56px); opacity: 1; }
   }
 
   /* ---- Fluxograma: os blocos aparecem e as setas se desenham entre eles ---- */
@@ -1771,6 +1865,7 @@
       <p class="tabs-group">Medições</p>
       <button class="tab-btn" data-view="voc">🗣️ &nbsp;VoC</button>
       <button class="tab-btn" data-view="pareto">📉 &nbsp;Pareto</button>
+      <button class="tab-btn" data-view="kanban">🗃️ &nbsp;Kanban</button>
 
       <p class="tabs-group">Metodologias</p>
       <button class="tab-btn" data-view="pdca">🔄 &nbsp;PDCA</button>
@@ -1815,9 +1910,18 @@
           </div>
         </div>
 
-        <h1 class="title-centered" id="app-title-h1">Sala de Análises</h1>
-        <p class="welcome-greeting" id="user-greeting"></p>
+        <div class="head-line">
+          <button class="head-toggle" id="btn-head-toggle" type="button"
+                  aria-expanded="true" aria-controls="head-body" title="Minimizar cabeçalho">
+            <svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5 6 8.5 10 4.5"
+                 fill="none" stroke="currentColor" stroke-width="1.8"
+                 stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <h1 id="app-title-h1">Sala de Análises</h1>
+          <p class="welcome-greeting" id="user-greeting"></p>
+        </div>
 
+        <div class="head-body" id="head-body">
         <div class="analysis-bar">
           <span class="analysis-label">Análise</span>
           <select id="analysis-select"></select>
@@ -1833,6 +1937,7 @@
 </div>
 
           <span class="status" id="status-analysis"></span>
+        </div>
         </div>
       </header>
 
@@ -2071,11 +2176,30 @@
     </div>
   </section>
 
+
+  <section id="view-kanban" class="view" style="display:none">
+    <div class="section-head">
+      <p class="eyebrow">Acompanhamento</p>
+      <h2>Kanban</h2>
+      <p class="sub">Onde as ações decididas na análise passam a ser acompanhadas até o fim. Importe o que foi definido no 5W2H e no FCA e mova os cartões conforme andam.</p>
+      <div class="toolbar">
+        <button class="ghost" id="btn-kb-import-5w2h">Importar ações do 5W2H</button>
+        <button class="ghost" id="btn-kb-import-fca">Importar ações do FCA</button>
+        <button class="ghost" id="btn-kb-add">Novo cartão</button>
+        <span class="status" id="status-kanban">salvo</span>
+      </div>
+    </div>
+
+    <div id="import-note-kanban" class="import-note" style="display:none"></div>
+
+    <div class="kb-board" id="kb-board"></div>
+  </section>
+
   <section id="view-fluxograma" class="view" style="display:none">
     <div class="section-head">
       <p class="eyebrow">Ferramentas</p>
       <h2>Fluxogramas</h2>
-      <p class="sub">Desenhe o processo do jeito que ele acontece de verdade — com os desvios, as espera e os retrabalhos. Cada análise pode ter quantos fluxogramas precisar.</p>
+      <p class="sub">Desenhe o processo do jeito que ele acontece de verdade — com os desvios, as esperas e os retrabalhos. Cada análise pode ter quantos fluxogramas precisar.</p>
       <div class="toolbar">
         <button class="ghost" id="btn-flux-new">Novo fluxograma</button>
         <button class="ghost" id="btn-flux-rename">Renomear</button>
@@ -2088,46 +2212,83 @@
     <div class="flux-tabs" id="flux-tabs"></div>
 
     <div class="flux-tools">
-      <span class="flux-tools-label">Adicionar</span>
-      <button class="mini" data-add-shape="terminal">⬭&nbsp; Início/Fim</button>
-      <button class="mini" data-add-shape="process">▭&nbsp; Processo</button>
-      <button class="mini" data-add-shape="decision">◇&nbsp; Decisão</button>
-      <button class="mini" data-add-shape="io">▱&nbsp; Dado</button>
-
-      <span class="flux-sel" id="flux-sel" hidden>
-        <span class="flux-tools-label">Forma</span>
-        <button class="mini" data-set-shape="terminal" title="Início/Fim">⬭</button>
-        <button class="mini" data-set-shape="process" title="Processo">▭</button>
-        <button class="mini" data-set-shape="decision" title="Decisão">◇</button>
-        <button class="mini" data-set-shape="io" title="Dado">▱</button>
-        <button class="mini" id="btn-flux-node-dup">Duplicar</button>
-        <button class="mini is-danger" id="btn-flux-node-del">Excluir</button>
+      <span class="flux-tools-label">Formas</span>
+      <span id="flux-shape-btns"></span>
+      <span class="flux-zoom">
+        <button class="mini" id="btn-flux-undo" title="Desfazer">↶</button>
+        <button class="mini" id="btn-flux-zout" title="Afastar">−</button>
+        <button class="mini" id="btn-flux-fit" title="Enquadrar tudo">Ajustar</button>
+        <button class="mini" id="btn-flux-zin" title="Aproximar">+</button>
       </span>
-
-      <span class="flux-hint">Arraste pra mover · puxe a bolinha pra ligar · duplo clique edita o texto · canto redimensiona</span>
     </div>
 
     <div class="flux-stage" id="flux-stage">
-      <div class="flux-canvas" id="flux-canvas">
-        <svg class="flux-links" id="flux-links" aria-hidden="true">
-          <defs>
-            <marker id="flux-arrowhead" viewBox="0 0 10 10" refX="9" refY="5"
-                    markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-              <path class="flux-arrow" d="M 0 0 L 10 5 L 0 10 z"/>
-            </marker>
-          </defs>
-        </svg>
-        <div class="flux-nodes" id="flux-nodes"></div>
-      </div>
-      <div class="flux-empty" id="flux-empty" style="display:none">
-        <p>Nenhum fluxograma nesta análise ainda.</p>
+      <svg id="flux-svg" class="flux-svg" role="img" aria-label="Área do fluxograma"><g id="flux-vp"></g></svg>
+      <div class="flux-empty" id="flux-empty">
+        <strong>Fluxograma vazio</strong>
+        <span>Clique numa forma acima para adicionar. Puxe uma bolinha da borda até outra forma para ligar — ou solte num espaço vazio para já criar a próxima etapa.</span>
         <button class="ghost" id="btn-flux-first">Criar o primeiro fluxograma</button>
       </div>
+      <div class="flux-selbar" id="flux-selbar" hidden></div>
     </div>
+    <p class="flux-hint">Arraste o fundo para mover · roda do mouse para aproximar · duplo clique numa forma abre o editor de texto, forma e cor · clique numa ligação para dar rótulo ou remover.</p>
   </section>
 
     </div>
   </main>
+</div>
+
+<div id="fnode-modal" class="xp-backdrop" role="dialog" aria-modal="true" aria-labelledby="fn-title">
+  <div class="xp-panel" style="max-width:480px">
+    <div class="xp-head">
+      <span class="xp-kicker">Fluxograma</span>
+      <h2 class="xp-title" id="fn-title">Editar forma</h2>
+    </div>
+    <div class="set-body">
+      <section class="set-section" style="margin:0;padding:0;border:none">
+        <h3 class="set-h">Texto</h3>
+        <textarea id="fn-text" rows="3"></textarea>
+      </section>
+      <section class="set-section">
+        <h3 class="set-h">Forma</h3>
+        <div class="fn-chips" id="fn-shapes"></div>
+      </section>
+      <section class="set-section">
+        <h3 class="set-h">Cor</h3>
+        <div class="fn-chips" id="fn-colors"></div>
+      </section>
+    </div>
+    <div class="xp-foot">
+      <button type="button" class="ghost" id="fn-del" style="margin-right:auto;border-color:var(--danger);color:var(--danger)">Excluir</button>
+      <button type="button" class="ghost" id="fn-cancel">Cancelar</button>
+      <button type="button" class="xp-go" id="fn-save">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div id="fedge-modal" class="xp-backdrop" role="dialog" aria-modal="true" aria-labelledby="fe-title">
+  <div class="xp-panel" style="max-width:420px">
+    <div class="xp-head">
+      <span class="xp-kicker">Fluxograma</span>
+      <h2 class="xp-title" id="fe-title">Rótulo da ligação</h2>
+      <p class="xp-sub">Aparece sobre a seta — útil nas saídas de uma decisão.</p>
+    </div>
+    <div class="set-body">
+      <input type="text" id="fe-text" maxlength="30" placeholder="Ex.: Sim" aria-label="Rótulo">
+      <div class="fn-chips" style="margin-top:10px">
+        <button type="button" class="fn-chip" data-fe-quick="Sim">Sim</button>
+        <button type="button" class="fn-chip" data-fe-quick="Não">Não</button>
+        <button type="button" class="fn-chip" data-fe-quick="Ok">Ok</button>
+        <button type="button" class="fn-chip" data-fe-quick="Erro">Erro</button>
+        <button type="button" class="fn-chip" data-fe-quick="Retorna">Retorna</button>
+      </div>
+    </div>
+    <div class="xp-foot">
+      <span class="xp-hint"></span>
+      <button type="button" class="ghost" id="fe-cancel">Cancelar</button>
+      <button type="button" class="xp-go" id="fe-save">Salvar</button>
+    </div>
+  </div>
 </div>
 
 <div id="settings-modal" class="xp-backdrop" role="dialog" aria-modal="true" aria-labelledby="set-title">
@@ -2259,6 +2420,7 @@ async function switchAnalysis(id){
   await loadVoc();
   await loadPareto();
   await loadFluxos();
+  await loadKanban();
   renderAnalysisSelector();
   trilhaToast = '';
   renderTrilha();
@@ -2280,7 +2442,7 @@ async function createNewAnalysis(name){
   voc = defaultVoc();
   pareto = defaultPareto();
   fluxos = defaultFluxos();
-  fluxoSel = null;
+  kanban = defaultKanban();
   try{
     await window.storage.set(keyIshikawa(currentId), JSON.stringify(state), false);
     await window.storage.set(keyPlan(currentId), JSON.stringify(plan), false);
@@ -2291,6 +2453,7 @@ async function createNewAnalysis(name){
     await window.storage.set(keyVoc(currentId), JSON.stringify(voc), false);
     await window.storage.set(keyPareto(currentId), JSON.stringify(pareto), false);
     await window.storage.set(keyFluxo(currentId), JSON.stringify(fluxos), false);
+    await window.storage.set(keyKanban(currentId), JSON.stringify(kanban), false);
   }catch(e){}
 
   renderAnalysisSelector();
@@ -2303,6 +2466,7 @@ async function createNewAnalysis(name){
   renderVoc();
   renderPareto();
   renderFluxo();
+  renderKanban();
   trilhaToast = '';
   renderTrilha();
   if(document.getElementById('view-painel').style.display !== 'none') renderDashboard();
@@ -5687,6 +5851,34 @@ document.getElementById('trilha-problem').addEventListener('input', (e) => {
   renderTrilha();
 });
 
+/* ================= Cabeçalho recolhível =================
+   O bloco de título comia uma tela inteira antes do conteúdo. Agora o título
+   fica à esquerda numa linha só e a barra de análise recolhe. */
+(function initHeadToggle(){
+  const btn = document.getElementById('btn-head-toggle');
+  const body = document.getElementById('head-body');
+  if(!btn || !body) return;
+  const CHAVE = 'metodologias:cabecalho';
+
+  function aplicar(min, salvar){
+    body.classList.toggle('is-min', min);
+    btn.setAttribute('aria-expanded', min ? 'false' : 'true');
+    btn.title = min ? 'Mostrar barra de análise' : 'Minimizar cabeçalho';
+    if(salvar){ try{ localStorage.setItem(CHAVE, min ? 'min' : 'full'); }catch(e){} }
+  }
+
+  let inicial = false;
+  try{ inicial = localStorage.getItem(CHAVE) === 'min'; }catch(e){}
+  // sem transição na carga, senão a barra "desaba" na frente do usuário
+  const t = body.style.transition;
+  body.style.transition = 'none';
+  aplicar(inicial, false);
+  void body.offsetWidth;
+  body.style.transition = t;
+
+  btn.addEventListener('click', () => aplicar(!body.classList.contains('is-min'), true));
+})();
+
 /* ================= Configurações (tema + conta) ================= */
 (function initSettings(){
   const modal = document.getElementById('settings-modal');
@@ -5846,14 +6038,15 @@ const FX_LABEL = {
   trilha:'Fluxo de trabalho', painel:'Visão geral', pdca:'Melhoria contínua',
   voc:'Voz do cliente', pareto:'Priorização', ishikawa:'Análise de causa raiz',
   '5porques':'Aprofundamento', '5w2h':'Plano de ação', dmaic:'Lean Six Sigma',
-  fca:'Resposta rápida a desvios', fluxograma:'Desenho de processo'
+  fca:'Resposta rápida a desvios', fluxograma:'Desenho de processo',
+  kanban:'Acompanhamento das ações'
 };
 // Views sem motivo próprio caem na animação de letras (o nome cruza a tela).
 const FX_PALAVRA = {
   voc:'VOC', pdca:'PDCA', dmaic:'DMAIC', fca:'FCA', '5w2h':'5W2H',
   trilha:'TRILHA', painel:'PAINEL'
 };
-const FX_DUR = { ishikawa: 900, pareto: 880, '5porques': 980, fluxograma: 980 };
+const FX_DUR = { ishikawa: 900, pareto: 880, '5porques': 980, fluxograma: 980, kanban: 900 };
 
 function fxSigla(texto){
   const chars = [...texto].map((c, i) =>
@@ -5945,7 +6138,23 @@ function fxFluxoFx(){
   </svg></div>`;
 }
 
+function fxKanbanFx(){
+  const col = (x) => `<rect x="${x}" y="14" width="74" height="132" rx="4"
+      fill="none" stroke="var(--line-strong)" stroke-width="2"/>`;
+  const card = (x, y, d) => `<rect class="fx-kcard" x="${x}" y="${y}" width="58" height="20" rx="3"
+      fill="var(--paper-raised)" stroke="var(--steel)" stroke-width="1.6" style="--d:${d}ms"/>`;
+  return `<div class="fx-kanban"><svg viewBox="0 0 262 160">
+    ${col(4)}${col(94)}${col(184)}
+    ${card(12, 26, 0)}${card(12, 54, 90)}
+    ${card(102, 26, 180)}
+    ${card(192, 26, 270)}
+    <rect class="fx-kmove" x="12" y="86" width="58" height="20" rx="3"
+      fill="var(--paper-raised)" stroke="var(--rust)" stroke-width="2"/>
+  </svg></div>`;
+}
+
 function fxMotivo(view){
+  if(view === 'kanban') return fxKanbanFx();
   if(view === 'fluxograma') return fxFluxoFx();
   if(view === 'ishikawa') return fxPeixe();
   if(view === 'pareto') return fxParetoFx();
@@ -6018,6 +6227,7 @@ function applyView(view){
   document.getElementById('view-dmaic').style.display = view === 'dmaic' ? '' : 'none';
   document.getElementById('view-fca').style.display = view === 'fca' ? '' : 'none';
   document.getElementById('view-fluxograma').style.display = view === 'fluxograma' ? '' : 'none';
+  document.getElementById('view-kanban').style.display = view === 'kanban' ? '' : 'none';
   if(view === 'ishikawa') requestAnimationFrame(drawBones);
   if(view === 'voc') renderVoc();
   if(view === 'pareto') renderPareto();
@@ -6027,6 +6237,7 @@ function applyView(view){
   if(view === 'dmaic') renderDmaic();
   if(view === 'fca') renderFca();
   if(view === 'fluxograma') renderFluxo();
+  if(view === 'kanban') renderKanban();
   if(view === 'trilha') renderTrilha();
   if(view === 'painel') renderDashboard();
 }
@@ -6108,91 +6319,443 @@ async function startAppData(){
   await loadVoc();
   await loadPareto();
   await loadFluxos();
+  await loadKanban();
   renderTrilha();
   // Painel fica oculto por padrão; renderDashboard() só roda quando a aba for reativada.
 }
 
 
-/* ================= Fluxogramas =================
-   Cada análise guarda vários fluxogramas. Os nós são divs posicionados em px
-   sobre uma tela rolável; a forma é um SVG esticado por dentro do nó (com
-   vector-effect pra a borda não deformar) e as ligações são um SVG só, por
-   cima do grid e por baixo dos nós. Nada disso entra na trilha nem no dossiê —
-   é ferramenta de desenho, não etapa de análise. */
-let fluxoSaveTimer = null;
-function keyFluxo(id){ return `analise:${id}:fluxos`; }
-function defaultFluxos(){ return { charts: [], activeId: null }; }
-let fluxos = defaultFluxos();
-let fluxoSel = null;      // id do nó selecionado
 
-const FLUX_SHAPES = {
-  terminal: '<rect x="2" y="2" width="96" height="96" rx="46" ry="46" vector-effect="non-scaling-stroke"/>',
-  process:  '<rect x="2" y="2" width="96" height="96" vector-effect="non-scaling-stroke"/>',
-  decision: '<polygon points="50,2 98,50 50,98 2,50" vector-effect="non-scaling-stroke"/>',
-  io:       '<polygon points="20,2 98,2 80,98 2,98" vector-effect="non-scaling-stroke"/>'
-};
-const FLUX_DEFAULTS = {
-  terminal: { w: 150, h: 56,  text: 'Início' },
-  process:  { w: 170, h: 70,  text: 'Etapa do processo' },
-  decision: { w: 170, h: 110, text: 'Decisão?' },
-  io:       { w: 170, h: 70,  text: 'Dado / documento' }
-};
+/* ================= Kanban =================
+   Onde as ações decididas na análise viram trabalho acompanhado. Os cartões
+   vêm do 5W2H e do FCA (ou entram na mão) e andam entre três colunas. A
+   importação é idempotente: guarda a origem em `src`, então reimportar não
+   duplica o que já está no quadro. */
+let kanbanSaveTimer = null;
+function keyKanban(id){ return `analise:${id}:kanban`; }
+function defaultKanban(){ return { cards: [] }; }
+let kanban = defaultKanban();
 
-async function loadFluxos(){
+const KB_COLS = [['todo','A fazer'], ['doing','Fazendo'], ['done','Feito']];
+const KB_ORDER = ['todo','doing','done'];
+
+async function loadKanban(){
   try{
-    const res = await window.storage.get(keyFluxo(currentId), false);
+    const res = await window.storage.get(keyKanban(currentId), false);
     const parsed = (res && res.value) ? JSON.parse(res.value) : null;
-    fluxos = (parsed && Array.isArray(parsed.charts)) ? parsed : defaultFluxos();
-  }catch(e){ fluxos = defaultFluxos(); }
-  if(!fluxos.charts.some(c => c.id === fluxos.activeId)){
-    fluxos.activeId = fluxos.charts.length ? fluxos.charts[0].id : null;
-  }
-  fluxoSel = null;
-  renderFluxo();
+    kanban = (parsed && Array.isArray(parsed.cards)) ? parsed : defaultKanban();
+  }catch(e){ kanban = defaultKanban(); }
+  renderKanban();
 }
 
-function scheduleFluxoSave(){
-  const el = document.getElementById('status-fluxograma');
+function scheduleKanbanSave(){
+  const el = document.getElementById('status-kanban');
   if(el) el.textContent = 'salvando…';
-  clearTimeout(fluxoSaveTimer);
-  fluxoSaveTimer = setTimeout(async () => {
+  clearTimeout(kanbanSaveTimer);
+  kanbanSaveTimer = setTimeout(async () => {
     try{
-      await window.storage.set(keyFluxo(currentId), JSON.stringify(fluxos), false);
+      await window.storage.set(keyKanban(currentId), JSON.stringify(kanban), false);
       if(el) el.textContent = 'salvo';
     }catch(e){ if(el) el.textContent = 'não foi possível salvar'; }
   }, 400);
 }
 
-function fluxoAtivo(){ return fluxos.charts.find(c => c.id === fluxos.activeId) || null; }
-
-function novoFluxo(nome){
-  const chart = { id: uid(), name: nome || `Fluxo ${fluxos.charts.length + 1}`, nodes: [], links: [] };
-  fluxos.charts.push(chart);
-  fluxos.activeId = chart.id;
-  fluxoSel = null;
-  scheduleFluxoSave();
-  renderFluxo();
-  return chart;
+function kbNota(msg){
+  const el = document.getElementById('import-note-kanban');
+  if(!el) return;
+  el.textContent = msg;
+  el.style.display = msg ? '' : 'none';
 }
 
-/* ---- geometria: onde a seta encosta na borda do nó ---- */
-function fluxoAnchor(n, tx, ty){
-  const cx = n.x + n.w / 2, cy = n.y + n.h / 2;
-  const dx = tx - cx, dy = ty - cy;
-  if(!dx && !dy) return { x: cx, y: cy };
-  const hw = n.w / 2, hh = n.h / 2;
-  let t;
-  if(n.shape === 'decision'){
-    // losango: a borda é |dx|/hw + |dy|/hh = 1
-    t = 1 / (Math.abs(dx) / hw + Math.abs(dy) / hh);
-  } else {
-    t = Math.min(dx ? hw / Math.abs(dx) : Infinity, dy ? hh / Math.abs(dy) : Infinity);
+function renderKanban(){
+  const board = document.getElementById('kb-board');
+  if(!board) return;
+  board.innerHTML = '';
+  KB_COLS.forEach(([col, rotulo]) => {
+    const itens = kanban.cards.filter(c => c.col === col);
+    const div = document.createElement('div');
+    div.className = 'kb-col';
+    div.dataset.col = col;
+    const h = document.createElement('h3');
+    h.innerHTML = `${rotulo}<span>${itens.length}</span>`;
+    div.appendChild(h);
+    if(!itens.length){
+      const p = document.createElement('p');
+      p.className = 'kb-empty';
+      p.textContent = 'Nada aqui.';
+      div.appendChild(p);
+    }
+    itens.forEach(c => div.appendChild(buildKbCard(c)));
+    board.appendChild(div);
+  });
+}
+
+function buildKbCard(c){
+  const el = document.createElement('div');
+  el.className = 'kb-card';
+  el.dataset.id = c.id;
+  el.dataset.origem = c.origem || 'manual';
+  el.draggable = true;
+
+  const t = document.createElement('div');
+  t.className = 'kb-title';
+  t.textContent = c.title || '(sem descrição)';
+  el.appendChild(t);
+
+  const chips = [];
+  if(c.origem === '5w2h') chips.push(['5W2H', true]);
+  if(c.origem === 'fca') chips.push(['FCA', true]);
+  if(c.who) chips.push([c.who, false]);
+  if(c.when) chips.push([c.when, false]);
+  if(chips.length){
+    const m = document.createElement('div');
+    m.className = 'kb-meta';
+    chips.forEach(([txt, src]) => {
+      const s = document.createElement('span');
+      s.className = 'kb-chip' + (src ? ' is-src' : '');
+      s.textContent = txt;
+      m.appendChild(s);
+    });
+    el.appendChild(m);
   }
-  return { x: cx + dx * t, y: cy + dy * t };
+
+  const i = KB_ORDER.indexOf(c.col);
+  const row = document.createElement('div');
+  row.className = 'kb-row';
+  if(i > 0){
+    const b = document.createElement('button');
+    b.className = 'mini'; b.textContent = '←'; b.title = 'Voltar coluna';
+    b.addEventListener('click', () => kbMover(c.id, KB_ORDER[i-1]));
+    row.appendChild(b);
+  }
+  if(i < 2){
+    const b = document.createElement('button');
+    b.className = 'mini'; b.textContent = '→'; b.title = 'Avançar coluna';
+    b.addEventListener('click', () => kbMover(c.id, KB_ORDER[i+1]));
+    row.appendChild(b);
+  }
+  const del = document.createElement('button');
+  del.className = 'mini kb-del'; del.textContent = 'Excluir';
+  del.addEventListener('click', () => {
+    kanban.cards = kanban.cards.filter(x => x.id !== c.id);
+    scheduleKanbanSave(); renderKanban();
+  });
+  row.appendChild(del);
+  el.appendChild(row);
+  return el;
+}
+
+function kbMover(id, col){
+  const c = kanban.cards.find(x => x.id === id);
+  if(!c || !col) return;
+  c.col = col;
+  scheduleKanbanSave(); renderKanban();
+}
+
+/* ---------- importação das ações ---------- */
+function kbImportar(origem){
+  const jaTem = new Set(kanban.cards.filter(c => c.src).map(c => c.src));
+  let novos = 0, vazios = 0;
+
+  if(origem === '5w2h'){
+    plan.items.forEach(it => {
+      const titulo = (it.what || '').trim();
+      if(!titulo){ vazios++; return; }
+      const src = '5w2h:' + it.id;
+      if(jaTem.has(src)) return;
+      kanban.cards.push({ id: uid(), src, origem: '5w2h', title: titulo,
+        who: (it.who || '').trim(), when: (it.when || '').trim(),
+        col: it.done ? 'done' : 'todo' });
+      novos++;
+    });
+  } else {
+    fca.entries.forEach(e => {
+      const titulo = (e.action || '').trim();
+      if(!titulo){ vazios++; return; }
+      const src = 'fca:' + e.id;
+      if(jaTem.has(src)) return;
+      kanban.cards.push({ id: uid(), src, origem: 'fca', title: titulo,
+        who: (e.responsible || '').trim(), when: (e.deadline || '').trim(),
+        col: e.done ? 'done' : 'todo' });
+      novos++;
+    });
+  }
+
+  const nome = origem === '5w2h' ? '5W2H' : 'FCA';
+  if(novos){
+    scheduleKanbanSave(); renderKanban();
+    kbNota(`${novos} ação(ões) do ${nome} entraram no quadro.` +
+           (vazios ? ` ${vazios} sem descrição foram ignoradas.` : ''));
+  } else if(vazios){
+    kbNota(`Nenhuma ação do ${nome} tem descrição preenchida ainda.`);
+  } else {
+    kbNota(`Nada novo no ${nome} — o que existe lá já está no quadro.`);
+  }
+}
+
+(function initKanban(){
+  const board = document.getElementById('kb-board');
+  if(!board) return;
+
+  document.getElementById('btn-kb-import-5w2h').addEventListener('click', () => kbImportar('5w2h'));
+  document.getElementById('btn-kb-import-fca').addEventListener('click', () => kbImportar('fca'));
+  document.getElementById('btn-kb-add').addEventListener('click', () => {
+    const t = prompt('O que precisa ser feito?');
+    if(t === null || !t.trim()) return;
+    kanban.cards.push({ id: uid(), src:'', origem:'manual', title: t.trim(), who:'', when:'', col:'todo' });
+    scheduleKanbanSave(); renderKanban();
+  });
+
+  let arrastando = null;
+  board.addEventListener('dragstart', e => {
+    const card = e.target.closest('.kb-card');
+    if(!card) return;
+    arrastando = card.dataset.id;
+    card.classList.add('is-drag');
+    e.dataTransfer.effectAllowed = 'move';
+    // o Firefox só inicia o arraste se algo for escrito no dataTransfer
+    e.dataTransfer.setData('text/plain', card.dataset.id);
+  });
+  board.addEventListener('dragend', e => {
+    const card = e.target.closest('.kb-card');
+    if(card) card.classList.remove('is-drag');
+    board.querySelectorAll('.kb-col').forEach(c => c.classList.remove('is-over'));
+    arrastando = null;
+  });
+  board.addEventListener('dragover', e => {
+    const col = e.target.closest('.kb-col');
+    if(!col || !arrastando) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    board.querySelectorAll('.kb-col').forEach(c => c.classList.toggle('is-over', c === col));
+  });
+  board.addEventListener('drop', e => {
+    const col = e.target.closest('.kb-col');
+    if(!col || !arrastando) return;
+    e.preventDefault();
+    kbMover(arrastando, col.dataset.col);
+    arrastando = null;
+  });
+})();
+
+/* ================= Fluxogramas =================
+   Desenho vetorial num SVG único: um <g> serve de viewport (pan/zoom) e as
+   formas são pintadas dentro dele a cada redesenho. A altura de cada bloco sai
+   do texto quebrado em linhas (medido no canvas), então o bloco acompanha o
+   conteúdo em vez de exigir redimensionamento na mão. Ligações saem de uma das
+   4 portas e são curvas de Bézier com controle na direção da porta.
+   Nada disso entra na trilha nem no dossiê — é ferramenta de desenho. */
+let fluxoSaveTimer = null;
+function keyFluxo(id){ return `analise:${id}:fluxos`; }
+function defaultFluxos(){ return { charts: [], activeId: null }; }
+let fluxos = defaultFluxos();
+let fsel = null;        // {tipo:'node'|'edge', id}
+let ftmp = null;        // ligação sendo puxada
+let fundo = [], fundoId = null;   // pilha de desfazer, por fluxograma
+let fview = {};         // viewport por fluxograma: {x, y, k}
+
+const FSHAPES = {
+  term: { nome: 'Início/Fim',      w: 150, base: 54 },
+  proc: { nome: 'Processo',        w: 170, base: 62 },
+  dec:  { nome: 'Decisão',         w: 172, base: 96 },
+  io:   { nome: 'Entrada/Saída',   w: 170, base: 60 },
+  doc:  { nome: 'Documento',       w: 170, base: 66 },
+  note: { nome: 'Nota',            w: 178, base: 62 }
+};
+const FCORES = [['base','Padrão'],['rust','Ferrugem'],['moss','Musgo'],
+                ['teal','Aço'],['danger','Alerta'],['steel','Neutra']];
+const FDIR = { t:[0,-1], r:[1,0], b:[0,1], l:[-1,0] };
+const FFONT = "Inter, sans-serif";
+const fsnap = v => Math.round(v / 10) * 10;
+const fclampK = k => Math.min(2.5, Math.max(0.3, k));
+const fmctx = document.createElement('canvas').getContext('2d');
+
+/* ---------- geometria ---------- */
+function fwrap(texto, maxW){
+  fmctx.font = '600 13.5px ' + FFONT;
+  const out = [];
+  String(texto || '').split('\n').forEach(par => {
+    const palavras = par.split(/\s+/).filter(Boolean);
+    if(!palavras.length){ out.push(''); return; }
+    let linha = '';
+    palavras.forEach(w => {
+      const t = linha ? linha + ' ' + w : w;
+      if(!linha || fmctx.measureText(t).width <= maxW) linha = t;
+      else { out.push(linha); linha = w; }
+    });
+    out.push(linha);
+  });
+  return out.length ? out : [''];
+}
+function fgeom(n){
+  const S = FSHAPES[n.type] || FSHAPES.proc, w = S.w, lh = 17;
+  const tw = n.type === 'dec' ? w * 0.58 : n.type === 'io' ? w - 44 : w - 26;
+  const linhas = fwrap(n.text, tw);
+  const h = n.type === 'dec'
+    ? Math.max(S.base, linhas.length * lh + 52)
+    : Math.max(S.base, linhas.length * lh + (n.type === 'doc' ? 34 : 24));
+  return { w, h, linhas, lh };
+}
+function fports(n, g){
+  return { t:[n.x + g.w/2, n.y], r:[n.x + g.w, n.y + g.h/2],
+           b:[n.x + g.w/2, n.y + g.h], l:[n.x, n.y + g.h/2] };
+}
+function fnearestPort(n, p){
+  const P = fports(n, fgeom(n));
+  let melhor = 't', d0 = Infinity;
+  Object.entries(P).forEach(([k, q]) => {
+    const d = (q[0]-p[0])**2 + (q[1]-p[1])**2;
+    if(d < d0){ d0 = d; melhor = k; }
+  });
+  return melhor;
+}
+function fshapePath(type, w, h){
+  switch(type){
+    case 'term': return `<rect width="${w}" height="${h}" rx="${h/2}"/>`;
+    case 'dec':  return `<polygon points="${w/2},0 ${w},${h/2} ${w/2},${h} 0,${h/2}"/>`;
+    case 'io':   return `<polygon points="16,0 ${w},0 ${w-16},${h} 0,${h}"/>`;
+    case 'doc':  return `<path d="M0 0H${w}V${h-10}C${w*.75} ${h-24} ${w*.5} ${h+6} ${w*.25} ${h-6}S${w*.06} ${h-14} 0 ${h-10}Z"/>`;
+    case 'note': return `<path d="M0 0H${w-16}L${w} 16V${h}H0Z"/><path d="M${w-16} 0V16H${w}" fill="none"/>`;
+    default:     return `<rect width="${w}" height="${h}" rx="6"/>`;
+  }
+}
+function fshapeIcon(type){
+  const m = {
+    term:'<rect x="2" y="3" width="22" height="12" rx="6"/>',
+    proc:'<rect x="2" y="3" width="22" height="12" rx="2"/>',
+    dec:'<path d="M13 1.5 24 9 13 16.5 2 9z"/>',
+    io:'<path d="M6 3h18l-4 12H2z"/>',
+    doc:'<path d="M2 3h22v10c-4-3-7 3-11 1s-7 1-11-1z"/>',
+    note:'<path d="M2 3h17l5 5v7H2z"/><path d="M19 3v5h5"/>'
+  };
+  return `<svg viewBox="0 0 26 18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round">${m[type]}</svg>`;
+}
+
+/* ---------- cores ---------- */
+function fcolors(){
+  return {
+    paper: cssVar('--paper'), surface: cssVar('--paper-card'),
+    ink: cssVar('--ink'), edge: cssVar('--flux-edge'),
+    rust: cssVar('--rust'), moss: cssVar('--moss'), teal: cssVar('--teal'),
+    danger: cssVar('--danger'), steel: cssVar('--steel')
+  };
+}
+function fhexRGB(c){
+  c = (c || '#000').replace('#','');
+  if(c.length === 3) c = c.split('').map(x => x + x).join('');
+  return [0,2,4].map(i => parseInt(c.slice(i, i+2), 16) || 0);
+}
+function fmix(a, b, t){
+  const A = fhexRGB(a), B = fhexRGB(b);
+  return '#' + A.map((v,i) => Math.round(v + (B[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+function fnodeColors(n, C){
+  const chave = n.color || (n.type === 'note' ? 'moss' : 'base');
+  if(chave === 'base') return { fill: C.surface, stroke: C.ink };
+  const c = C[chave] || C.ink;
+  return { fill: fmix(C.surface, c, .18), stroke: c };
+}
+
+/* ---------- curva entre portas ---------- */
+function fcurve(p1, d1, p2, d2){
+  const dist = Math.hypot(p2[0]-p1[0], p2[1]-p1[1]);
+  const k = Math.max(30, Math.min(120, dist * .45));
+  const c1 = [p1[0] + FDIR[d1][0]*k, p1[1] + FDIR[d1][1]*k];
+  const c2 = d2 ? [p2[0] + FDIR[d2][0]*k, p2[1] + FDIR[d2][1]*k] : p2;
+  const B = (a,b,c,d) => .125*a + .375*b + .375*c + .125*d;
+  return {
+    d: `M${p1[0]} ${p1[1]}C${c1[0]} ${c1[1]} ${c2[0]} ${c2[1]} ${p2[0]} ${p2[1]}`,
+    mid: [B(p1[0],c1[0],c2[0],p2[0]), B(p1[1],c1[1],c2[1],p2[1])]
+  };
+}
+
+/* ---------- desenho ---------- */
+function fmarkup(f, C, o){
+  o = o || {};
+  const G = {}, by = {};
+  f.nodes.forEach(n => { G[n.id] = fgeom(n); by[n.id] = n; });
+  let s = `<defs>
+    <marker id="fx-arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="${C.edge}"/></marker>
+    <marker id="fx-arrS" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="${C.rust}"/></marker></defs>`;
+
+  f.edges.forEach(e => {
+    const a = by[e.from], b = by[e.to];
+    if(!a || !b) return;
+    const eg = fcurve(fports(a, G[a.id])[e.fp], e.fp, fports(b, G[b.id])[e.tp], e.tp);
+    const sel = o.sel && o.sel.tipo === 'edge' && o.sel.id === e.id;
+    const col = sel ? C.rust : C.edge;
+    s += `<g class="edge" data-eid="${e.id}">
+      <path d="${eg.d}" fill="none" stroke="transparent" stroke-width="16"/>
+      <path d="${eg.d}" fill="none" stroke="${col}" stroke-width="${sel ? 2.8 : 1.9}" marker-end="url(#${sel ? 'fx-arrS' : 'fx-arr'})"/>`;
+    if(e.label){
+      fmctx.font = '700 12px ' + FFONT;
+      const tw = fmctx.measureText(e.label).width + 16;
+      s += `<rect x="${eg.mid[0]-tw/2}" y="${eg.mid[1]-11}" width="${tw}" height="22" rx="11"
+              fill="${C.paper}" stroke="${col}" stroke-width="1.2"/>
+            <text x="${eg.mid[0]}" y="${eg.mid[1]+4.2}" text-anchor="middle" font-size="12"
+              font-weight="700" fill="${C.ink}" font-family="${FFONT}">${escapeHtml(e.label)}</text>`;
+    }
+    s += '</g>';
+  });
+
+  if(o.tmp){
+    const t = fcurve(o.tmp.p1, o.tmp.d1, o.tmp.p2, null);
+    s += `<path d="${t.d}" fill="none" stroke="${C.rust}" stroke-width="2.2"
+            stroke-dasharray="6 5" marker-end="url(#fx-arrS)"/>`;
+  }
+
+  f.nodes.forEach(n => {
+    const g = G[n.id], col = fnodeColors(n, C);
+    const sel = o.sel && o.sel.tipo === 'node' && o.sel.id === n.id;
+    const ty = n.y + g.h/2 - (g.linhas.length-1)*g.lh/2 + 5 - (n.type === 'doc' ? 4 : 0);
+    s += `<g class="node${sel ? ' sel' : ''}" data-nid="${n.id}">
+      <g transform="translate(${n.x} ${n.y})" fill="${col.fill}" stroke="${sel ? C.rust : col.stroke}"
+         stroke-width="${sel ? 3 : 1.7}" stroke-linejoin="round">${fshapePath(n.type, g.w, g.h)}</g>
+      <text text-anchor="middle" font-family="${FFONT}" font-size="13.5" font-weight="600" fill="${C.ink}">${
+        g.linhas.map((l,i) => `<tspan x="${n.x + g.w/2}" y="${ty + i*g.lh}">${escapeHtml(l) || ' '}</tspan>`).join('')
+      }</text>`;
+    const P = fports(n, g);
+    s += Object.entries(P).map(([k,pt]) =>
+      `<circle class="port" data-nid="${n.id}" data-port="${k}" cx="${pt[0]}" cy="${pt[1]}" r="6"
+         fill="${C.surface}" stroke="${C.rust}" stroke-width="2.2"/>
+       <circle class="port hit" data-nid="${n.id}" data-port="${k}" cx="${pt[0]}" cy="${pt[1]}" r="15"
+         fill="transparent" stroke="none"/>`).join('');
+    s += '</g>';
+  });
+  return s;
+}
+function fbounds(f){
+  if(!f.nodes.length) return { x:0, y:0, w:320, h:220 };
+  let x1=1e9, y1=1e9, x2=-1e9, y2=-1e9;
+  f.nodes.forEach(n => {
+    const g = fgeom(n);
+    x1 = Math.min(x1, n.x); y1 = Math.min(y1, n.y);
+    x2 = Math.max(x2, n.x + g.w); y2 = Math.max(y2, n.y + g.h);
+  });
+  return { x:x1, y:y1, w:x2-x1, h:y2-y1 };
+}
+
+function fluxoAtivo(){ return fluxos.charts.find(c => c.id === fluxos.activeId) || null; }
+function fvw(){
+  const id = fluxos.activeId;
+  if(!id) return { x:40, y:40, k:1 };
+  return fview[id] || (fview[id] = { x:40, y:40, k:1 });
+}
+function fapplyView(){
+  const vp = document.getElementById('flux-vp');
+  const stage = document.getElementById('flux-stage');
+  if(!vp || !stage) return;
+  const v = fvw();
+  vp.setAttribute('transform', `translate(${v.x} ${v.y}) scale(${v.k})`);
+  stage.style.backgroundSize = `${20*v.k}px ${20*v.k}px`;
+  stage.style.backgroundPosition = `${v.x}px ${v.y}px`;
 }
 
 function renderFluxoTabs(){
   const wrap = document.getElementById('flux-tabs');
+  if(!wrap) return;
   wrap.innerHTML = '';
   if(!fluxos.charts.length){
     const s = document.createElement('span');
@@ -6207,332 +6770,431 @@ function renderFluxoTabs(){
     b.textContent = c.name;
     b.addEventListener('click', () => {
       if(c.id === fluxos.activeId) return;
-      fluxos.activeId = c.id;
-      fluxoSel = null;
-      scheduleFluxoSave();
-      renderFluxo();
+      fluxos.activeId = c.id; fsel = null;
+      scheduleFluxoSave(); renderFluxo();
+      requestAnimationFrame(fluxoFit);
     });
     wrap.appendChild(b);
   });
 }
 
-function renderFluxoLinks(){
-  const svg = document.getElementById('flux-links');
-  const chart = fluxoAtivo();
-  // preserva os <defs> (o marcador da seta) e limpa o resto
-  [...svg.querySelectorAll('.flux-link-g, .flux-link-tmp')].forEach(el => el.remove());
-  if(!chart) return;
-  const byId = {};
-  chart.nodes.forEach(n => { byId[n.id] = n; });
-  chart.links.forEach(l => {
-    const a = byId[l.from], b = byId[l.to];
-    if(!a || !b) return;
-    const p1 = fluxoAnchor(a, b.x + b.w / 2, b.y + b.h / 2);
-    const p2 = fluxoAnchor(b, a.x + a.w / 2, a.y + a.h / 2);
-    const d = `M ${p1.x} ${p1.y} L ${p2.x} ${p2.y}`;
-    const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-    g.setAttribute('class', 'flux-link-g');
-    const hit = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    hit.setAttribute('class', 'flux-link-hit');
-    hit.setAttribute('d', d);
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    line.setAttribute('class', 'flux-link');
-    line.setAttribute('d', d);
-    line.setAttribute('marker-end', 'url(#flux-arrowhead)');
-    const t = document.createElementNS('http://www.w3.org/2000/svg', 'title');
-    t.textContent = 'Clique para remover esta ligação';
-    g.append(hit, line, t);
-    // no grupo, não só na faixa invisível: a linha visível fica por cima dela
-    g.addEventListener('click', () => {
-      chart.links = chart.links.filter(x => x.id !== l.id);
-      scheduleFluxoSave();
-      renderFluxoLinks();
-    });
-    svg.appendChild(g);
-  });
-}
-
-function buildFluxoNode(n){
-  const el = document.createElement('div');
-  el.className = 'flux-node' + (n.id === fluxoSel ? ' is-sel' : '');
-  el.dataset.id = n.id;
-  el.dataset.shape = n.shape;
-  el.style.left = n.x + 'px';
-  el.style.top = n.y + 'px';
-  el.style.width = n.w + 'px';
-  el.style.height = n.h + 'px';
-
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svg.setAttribute('class', 'flux-shape');
-  svg.setAttribute('viewBox', '0 0 100 100');
-  svg.setAttribute('preserveAspectRatio', 'none');
-  svg.innerHTML = FLUX_SHAPES[n.shape] || FLUX_SHAPES.process;
-  el.appendChild(svg);
-
-  const txt = document.createElement('div');
-  txt.className = 'flux-node-text';
-  txt.textContent = n.text || '';
-  el.appendChild(txt);
-
-  const port = document.createElement('span');
-  port.className = 'flux-port';
-  port.title = 'Arraste até outro bloco para ligar';
-  el.appendChild(port);
-
-  const rz = document.createElement('span');
-  rz.className = 'flux-resize';
-  el.appendChild(rz);
-  return el;
-}
-
 function renderFluxo(){
-  const tabs = document.getElementById('flux-tabs');
-  if(!tabs) return;                       // view ainda não existe no DOM
+  const vp = document.getElementById('flux-vp');
+  if(!vp) return;
   renderFluxoTabs();
-  const chart = fluxoAtivo();
-  const nodesEl = document.getElementById('flux-nodes');
-  const canvas = document.getElementById('flux-canvas');
+  const f = fluxoAtivo();
   const vazio = document.getElementById('flux-empty');
-  nodesEl.innerHTML = '';
-  canvas.style.display = chart ? '' : 'none';
-  vazio.style.display = chart ? 'none' : '';
-  const sel = document.getElementById('flux-sel');
-  if(chart){
-    chart.nodes.forEach(n => nodesEl.appendChild(buildFluxoNode(n)));
-    renderFluxoLinks();
+  const barra = document.getElementById('flux-selbar');
+  const primeiro = document.getElementById('btn-flux-first');
+
+  if(!f){
+    vp.innerHTML = '';
+    vazio.hidden = false;
+    vazio.querySelector('strong').textContent = 'Nenhum fluxograma nesta análise';
+    vazio.querySelector('span').textContent = 'Crie um para começar a desenhar o processo.';
+    primeiro.style.display = '';
+    barra.hidden = true;
+    return;
   }
-  const temSel = !!(chart && chart.nodes.some(n => n.id === fluxoSel));
-  if(!temSel) fluxoSel = null;
-  sel.hidden = !temSel;
-  if(temSel){
-    const n = chart.nodes.find(x => x.id === fluxoSel);
-    sel.querySelectorAll('[data-set-shape]').forEach(b =>
-      b.classList.toggle('is-on', b.dataset.setShape === n.shape));
+  primeiro.style.display = 'none';
+  fapplyView();
+  vp.innerHTML = fmarkup(f, fcolors(), { sel: fsel, tmp: ftmp });
+  vazio.hidden = f.nodes.length > 0;
+  if(f.nodes.length === 0){
+    vazio.querySelector('strong').textContent = 'Fluxograma vazio';
+    vazio.querySelector('span').textContent = 'Clique numa forma acima para adicionar. Puxe uma bolinha da borda até outra forma para ligar — ou solte num espaço vazio para já criar a próxima etapa.';
   }
+  if(fsel && fsel.tipo === 'node'){
+    barra.innerHTML = '<button class="mini" data-fact="edit">Editar</button>' +
+                      '<button class="mini" data-fact="dup">Duplicar</button>' +
+                      '<button class="mini is-danger" data-fact="del">Excluir</button>';
+  } else if(fsel && fsel.tipo === 'edge'){
+    barra.innerHTML = '<button class="mini" data-fact="label">Rótulo</button>' +
+                      '<button class="mini is-danger" data-fact="del">Excluir</button>';
+  }
+  barra.hidden = !fsel;
 }
 
-function fluxoSelecionar(id){
-  fluxoSel = id;
-  document.querySelectorAll('#flux-nodes .flux-node').forEach(el =>
-    el.classList.toggle('is-sel', el.dataset.id === id));
-  const chart = fluxoAtivo();
-  const sel = document.getElementById('flux-sel');
-  const n = chart && chart.nodes.find(x => x.id === id);
-  sel.hidden = !n;
-  if(n) sel.querySelectorAll('[data-set-shape]').forEach(b =>
-    b.classList.toggle('is-on', b.dataset.setShape === n.shape));
+function fluxoFit(){
+  const f = fluxoAtivo(), svg = document.getElementById('flux-svg');
+  if(!f || !svg || !f.nodes.length) return;
+  const r = svg.getBoundingClientRect();
+  if(!r.width) return;
+  const b = fbounds(f), pad = 40, v = fvw();
+  v.k = fclampK(Math.min((r.width - pad*2)/b.w, (r.height - pad*2)/b.h, 1.2));
+  v.x = (r.width - b.w*v.k)/2 - b.x*v.k;
+  v.y = (r.height - b.h*v.k)/2 - b.y*v.k;
+  fapplyView();
+}
+function fluxoZoom(fator){
+  const svg = document.getElementById('flux-svg');
+  if(!svg) return;
+  const r = svg.getBoundingClientRect(), v = fvw();
+  const mx = r.width/2, my = r.height/2;
+  const k = fclampK(v.k * fator), wx = (mx - v.x)/v.k, wy = (my - v.y)/v.k;
+  v.k = k; v.x = mx - wx*k; v.y = my - wy*k;
+  fapplyView();
 }
 
-function fluxoAddNode(shape){
-  const chart = fluxoAtivo() || novoFluxo();
-  const d = FLUX_DEFAULTS[shape] || FLUX_DEFAULTS.process;
-  // empilha em diagonal a partir do canto, pra não nascer um em cima do outro
-  const k = chart.nodes.length;
-  const n = {
-    id: uid(), shape,
-    x: 80 + (k % 6) * 40, y: 70 + (k % 6) * 40,
-    w: d.w, h: d.h, text: d.text
-  };
-  chart.nodes.push(n);
-  scheduleFluxoSave();
+/* ---------- desfazer ---------- */
+function fpush(){
+  const f = fluxoAtivo();
+  if(!f) return;
+  if(fundoId !== f.id){ fundo = []; fundoId = f.id; }
+  fundo.push(JSON.stringify({ nodes: f.nodes, edges: f.edges }));
+  if(fundo.length > 60) fundo.shift();
+}
+function fundoDesfazer(){
+  const f = fluxoAtivo();
+  if(!f || fundoId !== f.id || !fundo.length) return;
+  const s = JSON.parse(fundo.pop());
+  f.nodes = s.nodes; f.edges = s.edges; fsel = null;
+  scheduleFluxoSave(); renderFluxo();
+}
+
+/* ---------- persistência ---------- */
+async function loadFluxos(){
+  try{
+    const res = await window.storage.get(keyFluxo(currentId), false);
+    const parsed = (res && res.value) ? JSON.parse(res.value) : null;
+    fluxos = (parsed && Array.isArray(parsed.charts)) ? parsed : defaultFluxos();
+  }catch(e){ fluxos = defaultFluxos(); }
+  fluxos.charts.forEach(migrarFluxo);
+  if(!fluxos.charts.some(c => c.id === fluxos.activeId)){
+    fluxos.activeId = fluxos.charts.length ? fluxos.charts[0].id : null;
+  }
+  fsel = null; ftmp = null; fundo = []; fundoId = null; fview = {};
   renderFluxo();
-  fluxoSelecionar(n.id);
+  requestAnimationFrame(fluxoFit);
+}
+
+// Converte os fluxogramas do formato antigo (nós com w/h fixos e "links" sem
+// porta) para o novo, que calcula a altura pelo texto e guarda as portas.
+function migrarFluxo(c){
+  if(!Array.isArray(c.nodes)) c.nodes = [];
+  if(Array.isArray(c.links) && !Array.isArray(c.edges)){
+    const mapaForma = { terminal:'term', process:'proc', decision:'dec', io:'io' };
+    c.nodes.forEach(n => {
+      n.type = mapaForma[n.shape] || n.type || 'proc';
+      n.color = n.color || '';
+      delete n.shape; delete n.w; delete n.h;
+    });
+    const by = {};
+    c.nodes.forEach(n => { by[n.id] = n; });
+    c.edges = c.links.filter(l => by[l.from] && by[l.to]).map(l => {
+      const a = by[l.from], b = by[l.to], gb = fgeom(b), ga = fgeom(a);
+      return {
+        id: l.id || uid(), from: l.from, to: l.to, label: '',
+        fp: fnearestPort(a, [b.x + gb.w/2, b.y + gb.h/2]),
+        tp: fnearestPort(b, [a.x + ga.w/2, a.y + ga.h/2])
+      };
+    });
+    delete c.links;
+  }
+  if(!Array.isArray(c.edges)) c.edges = [];
+  c.nodes.forEach(n => { if(!n.type) n.type = 'proc'; if(n.color === undefined) n.color = ''; });
+}
+
+function scheduleFluxoSave(){
+  const el = document.getElementById('status-fluxograma');
+  if(el) el.textContent = 'salvando…';
+  clearTimeout(fluxoSaveTimer);
+  fluxoSaveTimer = setTimeout(async () => {
+    try{
+      await window.storage.set(keyFluxo(currentId), JSON.stringify(fluxos), false);
+      if(el) el.textContent = 'salvo';
+    }catch(e){ if(el) el.textContent = 'não foi possível salvar'; }
+  }, 400);
+}
+
+function novoFluxo(nome, comExemplo){
+  const c = { id: uid(), name: nome || `Fluxo ${fluxos.charts.length + 1}`, nodes: [], edges: [] };
+  if(comExemplo) Object.assign(c, fluxoExemplo());
+  fluxos.charts.push(c);
+  fluxos.activeId = c.id;
+  fsel = null; fundo = []; fundoId = null;
+  scheduleFluxoSave(); renderFluxo();
+  requestAnimationFrame(fluxoFit);
+  return c;
+}
+function fluxoExemplo(){
+  const a = { id: uid(), type:'term', text:'Início',            x: 10, y:   0, color:'' };
+  const b = { id: uid(), type:'proc', text:'Receber a demanda', x:  0, y: 110, color:'' };
+  const c = { id: uid(), type:'dec',  text:'Está completa?',    x:  0, y: 230, color:'rust' };
+  const d = { id: uid(), type:'proc', text:'Executar',          x:  0, y: 396, color:'' };
+  const e = { id: uid(), type:'proc', text:'Pedir ajuste',      x:262, y: 254, color:'danger' };
+  const g = { id: uid(), type:'term', text:'Fim',               x: 10, y: 510, color:'' };
+  const E = (de, fp, para, tp, label) => ({ id: uid(), from: de.id, fp, to: para.id, tp, label: label || '' });
+  return { nodes:[a,b,c,d,e,g],
+           edges:[E(a,'b',b,'t'), E(b,'b',c,'t'), E(c,'b',d,'t','Sim'),
+                  E(c,'r',e,'l','Não'), E(e,'t',b,'r'), E(d,'b',g,'t')] };
+}
+
+function fluxoAddNode(type, at){
+  const f = fluxoAtivo() || novoFluxo();
+  const S = FSHAPES[type], v = fvw(), svg = document.getElementById('flux-svg');
+  fpush();
+  let x, y;
+  if(at){ x = at[0] - S.w/2; y = at[1] - S.base/2; }
+  else {
+    const r = svg.getBoundingClientRect(), off = (f.nodes.length % 5) * 18;
+    x = (r.width/2 - v.x)/v.k - S.w/2 + off;
+    y = (r.height/2 - v.y)/v.k - S.base/2 + off;
+  }
+  const texto = type === 'term' ? (f.nodes.some(n => n.type === 'term') ? 'Fim' : 'Início')
+              : type === 'dec'  ? 'Condição?'
+              : type === 'note' ? 'Anotação'
+              : FSHAPES[type].nome;
+  const n = { id: uid(), type, text: texto, x: fsnap(x), y: fsnap(y), color: '' };
+  f.nodes.push(n);
+  fsel = { tipo:'node', id:n.id };
+  scheduleFluxoSave(); renderFluxo();
+  return n;
+}
+function fluxoDelSel(){
+  const f = fluxoAtivo();
+  if(!f || !fsel) return;
+  fpush();
+  if(fsel.tipo === 'node'){
+    f.nodes = f.nodes.filter(n => n.id !== fsel.id);
+    f.edges = f.edges.filter(e => e.from !== fsel.id && e.to !== fsel.id);
+  } else {
+    f.edges = f.edges.filter(e => e.id !== fsel.id);
+  }
+  fsel = null;
+  scheduleFluxoSave(); renderFluxo();
+}
+function fluxoNodeAt(w){
+  const f = fluxoAtivo();
+  if(!f) return null;
+  for(let i = f.nodes.length - 1; i >= 0; i--){
+    const n = f.nodes[i], g = fgeom(n);
+    if(w[0] >= n.x && w[0] <= n.x + g.w && w[1] >= n.y && w[1] <= n.y + g.h) return n;
+  }
+  return null;
+}
+
+
+function escapeHtml(t){
+  return String(t == null ? '' : t)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
 (function initFluxograma(){
+  const svg = document.getElementById('flux-svg');
+  if(!svg) return;
   const stage = document.getElementById('flux-stage');
-  if(!stage) return;
-  const canvas = document.getElementById('flux-canvas');
-  const nodesEl = document.getElementById('flux-nodes');
-  const svg = document.getElementById('flux-links');
-  const SNAP = 10;
+  const pts = new Map();
+  let modo = null, st = null, moveu = false, pinca = null, ultimoToque = { id:null, t:0 };
 
-  function pos(e){
-    const r = canvas.getBoundingClientRect();
-    return { x: e.clientX - r.left, y: e.clientY - r.top };
-  }
-  function snap(v){ return Math.round(v / SNAP) * SNAP; }
-  function nodeById(id){
-    const c = fluxoAtivo();
-    return c ? c.nodes.find(n => n.id === id) : null;
-  }
+  const world = (cx, cy) => {
+    const r = svg.getBoundingClientRect(), v = fvw();
+    return [(cx - r.left - v.x)/v.k, (cy - r.top - v.y)/v.k];
+  };
 
-  let acao = null;   // {tipo, id, dx, dy, el, tmp}
-  let ultimoClique = { id: null, t: 0 };
+  svg.addEventListener('pointerdown', e => {
+    if(e.button > 0) return;
+    svg.setPointerCapture(e.pointerId);
+    pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
 
-  function entrarEdicao(el){
-    const txt = el.querySelector('.flux-node-text');
-    el.classList.add('is-editing');
-    txt.setAttribute('contenteditable', 'true');
-    txt.focus();
-    const r = document.createRange();
-    r.selectNodeContents(txt);
-    const selo = window.getSelection();
-    selo.removeAllRanges();
-    selo.addRange(r);
-  }
-
-  nodesEl.addEventListener('pointerdown', (e) => {
-    const el = e.target.closest('.flux-node');
-    if(!el) return;
-    const n = nodeById(el.dataset.id);
-    if(!n) return;
-
-    if(e.target.closest('.flux-port')){
-      e.preventDefault();
-      const tmp = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      tmp.setAttribute('class', 'flux-link-tmp');
-      svg.appendChild(tmp);
-      acao = { tipo: 'ligar', id: n.id, tmp };
-      nodesEl.setPointerCapture(e.pointerId);
+    if(pts.size === 2){
+      const [a,b] = [...pts.values()], v = fvw();
+      pinca = { d: Math.hypot(a.x-b.x, a.y-b.y) || 1, k: v.k,
+                mx:(a.x+b.x)/2, my:(a.y+b.y)/2, vx:v.x, vy:v.y };
+      if(modo === 'ligar'){ ftmp = null; renderFluxo(); }
+      modo = 'pinca';
       return;
     }
-    if(e.target.closest('.flux-resize')){
-      e.preventDefault();
-      const p = pos(e);
-      acao = { tipo: 'redim', id: n.id, el, ox: p.x, oy: p.y, w0: n.w, h0: n.h };
-      nodesEl.setPointerCapture(e.pointerId);
+    const f = fluxoAtivo();
+    if(!f) return;
+    moveu = false;
+
+    const porta = e.target.closest('[data-port]');
+    const no    = e.target.closest('[data-nid]');
+    const liga  = e.target.closest('[data-eid]');
+
+    if(porta){
+      const n = f.nodes.find(x => x.id === porta.dataset.nid);
+      const pt = fports(n, fgeom(n))[porta.dataset.port];
+      modo = 'ligar';
+      st = { nid:n.id, port:porta.dataset.port, p:pt };
+      ftmp = { p1:pt, d1:porta.dataset.port, p2:pt };
       return;
     }
-    fluxoSelecionar(n.id);
-    if(el.classList.contains('is-editing')) return;   // deixa o cursor de texto agir
-
-    // O preventDefault que segura o arraste também impede o navegador de sintetizar
-    // o dblclick, então o duplo clique é medido aqui.
-    const agora = Date.now();
-    const duplo = ultimoClique.id === n.id && (agora - ultimoClique.t) < 400;
-    ultimoClique = { id: n.id, t: agora };
-    if(duplo){ entrarEdicao(el); return; }
-
-    e.preventDefault();
-    const p = pos(e);
-    acao = { tipo: 'mover', id: n.id, el, dx: p.x - n.x, dy: p.y - n.y };
-    el.classList.add('is-dragging');
-    nodesEl.setPointerCapture(e.pointerId);
+    if(no){
+      const n = f.nodes.find(x => x.id === no.dataset.nid);
+      const w = world(e.clientX, e.clientY);
+      modo = 'arrastar';
+      st = { id:n.id, dx:w[0]-n.x, dy:w[1]-n.y, empilhou:false };
+      if(!(fsel && fsel.id === n.id)){ fsel = { tipo:'node', id:n.id }; renderFluxo(); }
+      return;
+    }
+    if(liga){
+      fsel = { tipo:'edge', id:liga.dataset.eid };
+      modo = null;
+      renderFluxo();
+      return;
+    }
+    const v = fvw();
+    modo = 'pan';
+    st = { x:e.clientX, y:e.clientY, vx:v.x, vy:v.y };
   });
 
-  nodesEl.addEventListener('pointermove', (e) => {
-    if(!acao) return;
-    const n = nodeById(acao.id);
-    if(!n) return;
-    const p = pos(e);
-    if(acao.tipo === 'mover'){
-      n.x = Math.max(0, snap(p.x - acao.dx));
-      n.y = Math.max(0, snap(p.y - acao.dy));
-      acao.el.style.left = n.x + 'px';
-      acao.el.style.top = n.y + 'px';
-      renderFluxoLinks();
-    } else if(acao.tipo === 'redim'){
-      n.w = Math.max(70, snap(acao.w0 + (p.x - acao.ox)));
-      n.h = Math.max(46, snap(acao.h0 + (p.y - acao.oy)));
-      acao.el.style.width = n.w + 'px';
-      acao.el.style.height = n.h + 'px';
-      renderFluxoLinks();
-    } else if(acao.tipo === 'ligar'){
-      const a = fluxoAnchor(n, p.x, p.y);
-      acao.tmp.setAttribute('d', `M ${a.x} ${a.y} L ${p.x} ${p.y}`);
+  svg.addEventListener('pointermove', e => {
+    if(!pts.has(e.pointerId)) return;
+    pts.set(e.pointerId, { x:e.clientX, y:e.clientY });
+    const v = fvw(), f = fluxoAtivo();
+    if(!f) return;
+
+    if(modo === 'pinca' && pts.size >= 2){
+      const [a,b] = [...pts.values()], r = svg.getBoundingClientRect();
+      const k = fclampK(pinca.k * Math.hypot(a.x-b.x, a.y-b.y) / pinca.d);
+      const wx = (pinca.mx - r.left - pinca.vx)/pinca.k, wy = (pinca.my - r.top - pinca.vy)/pinca.k;
+      v.k = k; v.x = (a.x+b.x)/2 - r.left - wx*k; v.y = (a.y+b.y)/2 - r.top - wy*k;
+      fapplyView();
+      return;
+    }
+    if(modo === 'pan'){
+      const dx = e.clientX - st.x, dy = e.clientY - st.y;
+      if(Math.abs(dx) + Math.abs(dy) > 4) moveu = true;
+      v.x = st.vx + dx; v.y = st.vy + dy;
+      fapplyView();
+      return;
+    }
+    if(modo === 'arrastar'){
+      const n = f.nodes.find(x => x.id === st.id);
+      if(!n) return;
+      const w = world(e.clientX, e.clientY);
+      const nx = fsnap(w[0] - st.dx), ny = fsnap(w[1] - st.dy);
+      if(nx !== n.x || ny !== n.y){
+        if(!st.empilhou){ fpush(); st.empilhou = true; }
+        n.x = nx; n.y = ny; moveu = true;
+        renderFluxo();
+      }
+      return;
+    }
+    if(modo === 'ligar'){
+      ftmp.p2 = world(e.clientX, e.clientY);
+      moveu = true;
+      renderFluxo();
     }
   });
 
   function encerrar(e){
-    if(!acao) return;
-    if(acao.tipo === 'ligar'){
-      acao.tmp.remove();
-      const alvo = document.elementFromPoint(e.clientX, e.clientY);
-      const elAlvo = alvo && alvo.closest ? alvo.closest('.flux-node') : null;
-      const chart = fluxoAtivo();
-      if(elAlvo && chart){
-        const destino = elAlvo.dataset.id;
-        const jaTem = chart.links.some(l => l.from === acao.id && l.to === destino);
-        if(destino !== acao.id && !jaTem){
-          chart.links.push({ id: uid(), from: acao.id, to: destino });
-          scheduleFluxoSave();
+    if(!pts.has(e.pointerId)) return;
+    pts.delete(e.pointerId);
+    if(modo === 'pinca'){ if(pts.size < 2) modo = pts.size ? 'nada' : null; return; }
+    if(modo === 'nada'){ if(!pts.size) modo = null; return; }
+    const f = fluxoAtivo();
+    if(!f){ modo = null; return; }
+
+    if(modo === 'pan'){
+      if(!moveu && fsel){ fsel = null; renderFluxo(); }
+    } else if(modo === 'arrastar'){
+      if(moveu){ scheduleFluxoSave(); }
+      else {
+        const agora = Date.now();
+        if(ultimoToque.id === st.id && agora - ultimoToque.t < 400){
+          ultimoToque = { id:null, t:0 };
+          abrirEdicaoNo(st.id);
+        } else {
+          ultimoToque = { id:st.id, t:agora };
         }
       }
-      renderFluxoLinks();
-    } else if(acao.tipo === 'mover' || acao.tipo === 'redim'){
-      if(acao.el) acao.el.classList.remove('is-dragging');
-      scheduleFluxoSave();
+    } else if(modo === 'ligar'){
+      const w = ftmp ? ftmp.p2 : st.p;
+      ftmp = null;
+      const longe = Math.hypot(w[0]-st.p[0], w[1]-st.p[1]) > 40;
+      const alvo = fluxoNodeAt(w);
+      if(moveu && alvo && alvo.id !== st.nid){
+        if(f.edges.some(x => x.from === st.nid && x.to === alvo.id)) renderFluxo();
+        else {
+          fpush();
+          f.edges.push({ id: uid(), from: st.nid, fp: st.port, to: alvo.id,
+                         tp: fnearestPort(alvo, st.p), label: '' });
+          scheduleFluxoSave(); renderFluxo();
+        }
+      } else if(moveu && !alvo && longe){
+        // soltar no vazio cria a próxima etapa já ligada
+        fpush();
+        const S = FSHAPES.proc;
+        const n = { id: uid(), type:'proc', text:'Processo',
+                    x: fsnap(w[0] - S.w/2), y: fsnap(w[1] - S.base/2), color:'' };
+        f.nodes.push(n);
+        f.edges.push({ id: uid(), from: st.nid, fp: st.port, to: n.id,
+                       tp: fnearestPort(n, st.p), label: '' });
+        fsel = { tipo:'node', id:n.id };
+        scheduleFluxoSave(); renderFluxo();
+        abrirEdicaoNo(n.id);
+      } else {
+        renderFluxo();
+      }
     }
-    acao = null;
+    modo = null;
   }
-  nodesEl.addEventListener('pointerup', encerrar);
-  nodesEl.addEventListener('pointercancel', encerrar);
+  svg.addEventListener('pointerup', encerrar);
+  svg.addEventListener('pointercancel', encerrar);
 
-  /* ---- sair da edição grava o texto ---- */
-  nodesEl.addEventListener('focusout', (e) => {
-    const txt = e.target.closest && e.target.closest('.flux-node-text');
-    if(!txt) return;
-    const el = txt.closest('.flux-node');
-    el.classList.remove('is-editing');
-    txt.removeAttribute('contenteditable');
-    const n = nodeById(el.dataset.id);
-    const novo = txt.textContent.trim();
-    if(n && n.text !== novo){ n.text = novo; scheduleFluxoSave(); }
+  svg.addEventListener('wheel', e => {
+    e.preventDefault();
+    const v = fvw(), r = svg.getBoundingClientRect();
+    const mx = e.clientX - r.left, my = e.clientY - r.top;
+    const k = fclampK(v.k * Math.exp(-e.deltaY * 0.0015));
+    const wx = (mx - v.x)/v.k, wy = (my - v.y)/v.k;
+    v.k = k; v.x = mx - wx*k; v.y = my - wy*k;
+    fapplyView();
+  }, { passive:false });
+
+  /* ---- barra de formas ---- */
+  const btns = document.getElementById('flux-shape-btns');
+  Object.entries(FSHAPES).forEach(([k, S]) => {
+    const b = document.createElement('button');
+    b.className = 'mini';
+    b.innerHTML = fshapeIcon(k) + ' ' + S.nome;
+    b.addEventListener('click', () => fluxoAddNode(k));
+    btns.appendChild(b);
   });
 
-  nodesEl.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape' && e.target.closest('.flux-node-text')) e.target.blur();
+  document.getElementById('btn-flux-zin').addEventListener('click', () => fluxoZoom(1.25));
+  document.getElementById('btn-flux-zout').addEventListener('click', () => fluxoZoom(0.8));
+  document.getElementById('btn-flux-fit').addEventListener('click', fluxoFit);
+  document.getElementById('btn-flux-undo').addEventListener('click', fundoDesfazer);
+
+  /* ---- barra do selecionado ---- */
+  document.getElementById('flux-selbar').addEventListener('click', e => {
+    const b = e.target.closest('[data-fact]');
+    if(!b || !fsel) return;
+    const acao = b.dataset.fact;
+    if(acao === 'del') fluxoDelSel();
+    else if(acao === 'edit') abrirEdicaoNo(fsel.id);
+    else if(acao === 'label') abrirRotulo(fsel.id);
+    else if(acao === 'dup'){
+      const f = fluxoAtivo(), n = f.nodes.find(x => x.id === fsel.id);
+      if(!n) return;
+      fpush();
+      const c = Object.assign({}, n, { id: uid(), x: n.x + 30, y: n.y + 30 });
+      f.nodes.push(c);
+      fsel = { tipo:'node', id:c.id };
+      scheduleFluxoSave(); renderFluxo();
+    }
   });
 
-  // clique no vazio: tira a seleção
-  stage.addEventListener('pointerdown', (e) => {
-    if(e.target.closest('.flux-node')) return;
-    fluxoSelecionar(null);
-  });
-
-  // Delete apaga o nó selecionado (menos enquanto se edita texto)
-  document.addEventListener('keydown', (e) => {
-    if(e.key !== 'Delete' && e.key !== 'Backspace') return;
-    if(!fluxoSel) return;
+  document.addEventListener('keydown', e => {
     if(document.getElementById('view-fluxograma').style.display === 'none') return;
     const a = document.activeElement;
     if(a && (a.isContentEditable || a.tagName === 'INPUT' || a.tagName === 'TEXTAREA')) return;
-    e.preventDefault();
-    apagarNo();
-  });
-
-  function apagarNo(){
-    const chart = fluxoAtivo();
-    if(!chart || !fluxoSel) return;
-    chart.nodes = chart.nodes.filter(n => n.id !== fluxoSel);
-    chart.links = chart.links.filter(l => l.from !== fluxoSel && l.to !== fluxoSel);
-    fluxoSel = null;
-    scheduleFluxoSave();
-    renderFluxo();
-  }
-
-  /* ---- barra de ferramentas ---- */
-  document.querySelectorAll('[data-add-shape]').forEach(b =>
-    b.addEventListener('click', () => fluxoAddNode(b.dataset.addShape)));
-
-  document.querySelectorAll('[data-set-shape]').forEach(b =>
-    b.addEventListener('click', () => {
-      const n = nodeById(fluxoSel);
-      if(!n) return;
-      n.shape = b.dataset.setShape;
-      scheduleFluxoSave();
-      renderFluxo();
-      fluxoSelecionar(n.id);
-    }));
-
-  document.getElementById('btn-flux-node-del').addEventListener('click', apagarNo);
-  document.getElementById('btn-flux-node-dup').addEventListener('click', () => {
-    const chart = fluxoAtivo();
-    const n = nodeById(fluxoSel);
-    if(!chart || !n) return;
-    const copia = Object.assign({}, n, { id: uid(), x: n.x + 30, y: n.y + 30 });
-    chart.nodes.push(copia);
-    scheduleFluxoSave();
-    renderFluxo();
-    fluxoSelecionar(copia.id);
+    if((e.key === 'Delete' || e.key === 'Backspace') && fsel){ e.preventDefault(); fluxoDelSel(); }
+    if(e.key === 'z' && (e.ctrlKey || e.metaKey)){ e.preventDefault(); fundoDesfazer(); }
   });
 
   /* ---- gestão dos fluxogramas ---- */
   function criar(){
     const nome = prompt('Nome do fluxograma:', `Fluxo ${fluxos.charts.length + 1}`);
     if(nome === null) return;
-    novoFluxo(nome.trim() || `Fluxo ${fluxos.charts.length + 1}`);
+    const exemplo = fluxos.charts.length === 0 &&
+      confirm('Começar com um exemplo pronto? (Cancelar cria em branco)');
+    novoFluxo(nome.trim() || `Fluxo ${fluxos.charts.length + 1}`, exemplo);
   }
   document.getElementById('btn-flux-new').addEventListener('click', criar);
   document.getElementById('btn-flux-first').addEventListener('click', criar);
@@ -6543,40 +7205,120 @@ function fluxoAddNode(shape){
     const nome = prompt('Novo nome:', c.name);
     if(nome === null) return;
     c.name = nome.trim() || c.name;
-    scheduleFluxoSave();
-    renderFluxoTabs();
+    scheduleFluxoSave(); renderFluxoTabs();
   });
 
   document.getElementById('btn-flux-dup').addEventListener('click', () => {
     const c = fluxoAtivo();
     if(!c){ alert('Crie um fluxograma primeiro.'); return; }
-    // ids novos pros nós, e as ligações reapontadas pra eles
     const mapa = {};
-    const nodes = c.nodes.map(n => {
-      const novo = Object.assign({}, n, { id: uid() });
-      mapa[n.id] = novo.id;
-      return novo;
-    });
-    const links = c.links
-      .filter(l => mapa[l.from] && mapa[l.to])
-      .map(l => ({ id: uid(), from: mapa[l.from], to: mapa[l.to] }));
-    const copia = { id: uid(), name: c.name + ' (cópia)', nodes, links };
+    const nodes = c.nodes.map(n => { const novo = Object.assign({}, n, { id: uid() }); mapa[n.id] = novo.id; return novo; });
+    const edges = c.edges.filter(e => mapa[e.from] && mapa[e.to])
+                         .map(e => Object.assign({}, e, { id: uid(), from: mapa[e.from], to: mapa[e.to] }));
+    const copia = { id: uid(), name: c.name + ' (cópia)', nodes, edges };
     fluxos.charts.push(copia);
     fluxos.activeId = copia.id;
-    fluxoSel = null;
-    scheduleFluxoSave();
-    renderFluxo();
+    fsel = null; fundo = []; fundoId = null;
+    scheduleFluxoSave(); renderFluxo();
+    requestAnimationFrame(fluxoFit);
   });
 
   document.getElementById('btn-flux-del').addEventListener('click', () => {
     const c = fluxoAtivo();
-    if(!c){ return; }
+    if(!c) return;
     if(!confirm(`Excluir o fluxograma "${c.name}"? Não dá pra desfazer.`)) return;
     fluxos.charts = fluxos.charts.filter(x => x.id !== c.id);
     fluxos.activeId = fluxos.charts.length ? fluxos.charts[0].id : null;
-    fluxoSel = null;
-    scheduleFluxoSave();
+    fsel = null; fundo = []; fundoId = null;
+    scheduleFluxoSave(); renderFluxo();
+  });
+})();
+
+/* ---------- modal: editar forma ---------- */
+let fedit = null;
+function abrirEdicaoNo(id){
+  const f = fluxoAtivo(), n = f && f.nodes.find(x => x.id === id);
+  if(!n) return;
+  fedit = Object.assign({}, n);
+  desenharEdicaoNo();
+  document.getElementById('fnode-modal').classList.add('open');
+  setTimeout(() => { const t = document.getElementById('fn-text'); if(t){ t.focus(); t.select(); } }, 50);
+}
+function desenharEdicaoNo(){
+  const C = fcolors(), n = fedit;
+  const atual = n.color || (n.type === 'note' ? 'moss' : 'base');
+  document.getElementById('fn-text').value = n.text;
+  document.getElementById('fn-shapes').innerHTML = Object.entries(FSHAPES).map(([k,S]) =>
+    `<button type="button" class="fn-chip" data-fn-type="${k}" aria-pressed="${n.type === k}">${fshapeIcon(k)} ${S.nome}</button>`
+  ).join('');
+  document.getElementById('fn-colors').innerHTML = FCORES.map(([k,rotulo]) => {
+    const c = k === 'base' ? C.ink : C[k];
+    return `<button type="button" class="fn-swatch" data-fn-color="${k}" aria-pressed="${atual === k}"
+              title="${rotulo}" aria-label="${rotulo}"
+              style="background:${k === 'base' ? C.surface : fmix(C.surface, c, .35)};border-color:${c}"></button>`;
+  }).join('');
+}
+(function initFnodeModal(){
+  const modal = document.getElementById('fnode-modal');
+  if(!modal) return;
+  function fechar(){ modal.classList.remove('open'); fedit = null; }
+  modal.addEventListener('click', e => {
+    if(e.target === modal) return fechar();
+    const tp = e.target.closest('[data-fn-type]');
+    const cor = e.target.closest('[data-fn-color]');
+    if(tp){ fedit.type = tp.dataset.fnType; fedit.text = document.getElementById('fn-text').value; desenharEdicaoNo(); }
+    if(cor){ fedit.color = cor.dataset.fnColor === 'base' ? '' : cor.dataset.fnColor; fedit.text = document.getElementById('fn-text').value; desenharEdicaoNo(); }
+  });
+  document.getElementById('fn-cancel').addEventListener('click', fechar);
+  document.getElementById('fn-del').addEventListener('click', () => {
+    if(!fedit) return;
+    fsel = { tipo:'node', id: fedit.id };
+    fechar();
+    fluxoDelSel();
+  });
+  document.getElementById('fn-save').addEventListener('click', () => {
+    const f = fluxoAtivo(), n = f && f.nodes.find(x => x.id === fedit.id);
+    if(!n){ fechar(); return; }
+    fpush();
+    n.text = document.getElementById('fn-text').value.trim();
+    n.type = fedit.type;
+    n.color = fedit.color || '';
+    fechar();
+    scheduleFluxoSave(); renderFluxo();
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && modal.classList.contains('open')) fechar();
+  });
+})();
+
+/* ---------- modal: rótulo da ligação ---------- */
+let fedgeId = null;
+function abrirRotulo(id){
+  const f = fluxoAtivo(), e = f && f.edges.find(x => x.id === id);
+  if(!e) return;
+  fedgeId = id;
+  document.getElementById('fe-text').value = e.label || '';
+  document.getElementById('fedge-modal').classList.add('open');
+  setTimeout(() => document.getElementById('fe-text').focus(), 50);
+}
+(function initFedgeModal(){
+  const modal = document.getElementById('fedge-modal');
+  if(!modal) return;
+  function fechar(){ modal.classList.remove('open'); fedgeId = null; }
+  modal.addEventListener('click', e => {
+    if(e.target === modal) return fechar();
+    const q = e.target.closest('[data-fe-quick]');
+    if(q) document.getElementById('fe-text').value = q.dataset.feQuick;
+  });
+  document.getElementById('fe-cancel').addEventListener('click', fechar);
+  document.getElementById('fe-save').addEventListener('click', () => {
+    const f = fluxoAtivo(), e = f && f.edges.find(x => x.id === fedgeId);
+    if(e){ fpush(); e.label = document.getElementById('fe-text').value.trim(); scheduleFluxoSave(); }
+    fechar();
     renderFluxo();
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && modal.classList.contains('open')) fechar();
   });
 })();
 

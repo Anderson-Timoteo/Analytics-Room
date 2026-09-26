@@ -41,43 +41,4 @@ Não tem instalação. Não tem build. É um site.
 
 Tudo aqui é **HTML, CSS e JavaScript puros** — sem framework, sem processo de build, sem dependência de servidor pra funcionar. Um único `index.html` carrega o app inteiro.
 
-### Onde os dados ficam
 
-Esse é o ponto que mais vale explicar, porque é uma decisão consciente de design:
-
-- **Os dados das suas análises** (causas, ações, cartões de PDCA, tudo) ficam **só no seu navegador** (`localStorage`) — nunca sobem pra nenhum servidor. Isso significa: zero custo de armazenamento em nuvem, e você é o único dono dos seus dados enquanto trabalha.
-- **O login/cadastro de conta** usa [Supabase Auth](https://supabase.com) — mas *só* pra autenticação. Nenhuma tabela de banco guarda o conteúdo das suas análises.
-- **O "salvamento de verdade"**, o que sobrevive à troca de computador ou pode ser compartilhado com alguém, são os botões de **exportação** (.sql / .xlsx / .pdf) dentro do app.
-
-Essa ponte entre o app e o backend vive isolada em `js/storage-adapter.js` — o resto do código nem sabe que esse arquivo existe, só chama `window.storage.get/set/delete/list(...)`.
-
-### Estrutura de arquivos
-
----
-
-## 🔐 Contas e visitantes
-
-- **Visitante**: usa todas as ferramentas, nada é salvo além da sessão do navegador.
-- **Conta**: precisa de um projeto Supabase configurado (`config.js` preenchido com `SUPABASE_URL` e `SUPABASE_ANON_KEY`). Sem isso, o app cai automaticamente em modo visitante — nunca trava esperando um backend que não existe.
-
----
-
-- **Cloudflare Pages** — conecta direto no GitHub, HTTPS automático, banda ilimitada de graça.
-- **GitHub Pages** — o mais simples se você já vive no GitHub.
-
-Basta subir este repositório e apontar a hospedagem pra ele. Sem passo de build.
-
----
-## 🗺️ O que vem por aí
-
-O menu lateral já reserva espaço pra novas metodologias — o projeto foi pensado pra crescer sem precisar refazer o que já existe. Ideias em radar: mais pontes de importação entre ferramentas, relatórios comparativos entre análises, e (quem sabe) um agente de IA que ajuda a interpretar os dados direto na tela.
-
----
-
-## 🙏 Um obrigado
-
-Esse projeto foi crescendo aos poucos, conversa por conversa, ideia por ideia — cada metodologia, cada ajuste de design, cada correção de bug foi pensado com calma pra ficar num jeito que faça sentido usar de verdade, não só bonito de olhar. Se você chegou até aqui lendo o README, provavelmente é porque também acredita que boas ferramentas de análise deveriam ser simples de usar. Espero que essa sala ajude a resolver problemas de verdade.
-
----
-
-**Criado por Anderson Timoteo.**
