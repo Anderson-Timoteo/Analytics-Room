@@ -27,7 +27,7 @@ Nenhuma dessas ferramentas é uma ilha. Uma causa marcada como solução no Ishi
 
 ## 🖥️ Como usar
 
-Não tem instalação. Não tem build. É um site.
+É um site.
 
 1. Abra o link do site.
 2. Na primeira vez, escolha **entrar com conta**, **criar conta** ou **continuar como visitante** — sem conta, você usa tudo normalmente, só que nada fica salvo entre sessões.
