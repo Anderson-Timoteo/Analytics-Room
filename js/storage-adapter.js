@@ -28,33 +28,73 @@
   let mode = null; // 'guest' | 'account' — só controla a TELA/saudação
   let currentUser = null;
 
-  // ---------------- window.storage: SEMPRE local (localStorage) ----------------
+  // ---------------- window.storage: local no navegador ----------------
+  // A tela promete que no modo visitante "ao fechar a aba, os dados somem".
+  // Com localStorage isso era falso: ficava gravado em disco pra sempre e a
+  // próxima pessoa na mesma máquina via tudo. Visitante agora usa
+  // sessionStorage, que morre junto com a aba — a promessa passou a ser real.
+  // Conta continua em localStorage, porque ali persistir é o esperado.
   const LS_PREFIX = 'saladeanalises:';
 
   function lsKey(key, shared) {
     return `${LS_PREFIX}${shared ? 'shared' : 'p'}:${key}`;
   }
 
+  function store() {
+    try {
+      return mode === 'guest' ? sessionStorage : localStorage;
+    } catch (e) {
+      return localStorage;          // navegador com storage bloqueado
+    }
+  }
+
+  // Uma vez por aba: o que ficou gravado em disco de sessões de visitante
+  // anteriores é movido pra sessionStorage e apagado do disco. Sem isso a
+  // troca só esconderia os dados antigos, em vez de resolver.
+  let migrou = false;
+  function migrarVisitante() {
+    if (migrou || mode !== 'guest') return;
+    migrou = true;
+    try {
+      const antigas = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(LS_PREFIX)) antigas.push(k);
+      }
+      antigas.forEach(k => {
+        if (sessionStorage.getItem(k) === null) {
+          sessionStorage.setItem(k, localStorage.getItem(k));
+        }
+        localStorage.removeItem(k);
+      });
+    } catch (e) { /* storage bloqueado: segue sem migrar */ }
+  }
+
   window.storage = {
     async get(key, shared) {
-      const raw = localStorage.getItem(lsKey(key, shared));
+      migrarVisitante();
+      const raw = store().getItem(lsKey(key, shared));
       if (raw === null) throw new Error('not found');
       return { key, value: raw, shared: !!shared };
     },
     async set(key, value, shared) {
-      localStorage.setItem(lsKey(key, shared), value);
+      migrarVisitante();
+      store().setItem(lsKey(key, shared), value);
       return { key, value, shared: !!shared };
     },
     async delete(key, shared) {
-      localStorage.removeItem(lsKey(key, shared));
+      migrarVisitante();
+      store().removeItem(lsKey(key, shared));
       return { key, deleted: true, shared: !!shared };
     },
     async list(prefix, shared) {
+      migrarVisitante();
+      const st = store();
       const sharedTag = shared ? 'shared' : 'p';
       const fullPrefix = `${LS_PREFIX}${sharedTag}:${prefix || ''}`;
       const keys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const rawKey = localStorage.key(i);
+      for (let i = 0; i < st.length; i++) {
+        const rawKey = st.key(i);
         if (rawKey && rawKey.startsWith(fullPrefix)) {
           keys.push(rawKey.slice(`${LS_PREFIX}${sharedTag}:`.length));
         }

@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=Inter:wght@400;500;600;700&family=Oswald:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script>
   // Aplica o tema salvo antes da renderização para evitar flash. Padrão: escuro (sem atributo).
-  try{ var _t = localStorage.getItem('metodologias:tema'); if(_t === 'light') document.documentElement.dataset.theme = 'light'; }catch(e){}
+  try{ var _t = localStorage.getItem('metodologias:tema'); if(_t && _t !== 'dark') document.documentElement.dataset.theme = _t; }catch(e){}
 </script>
 <style>
   /* ===== Tema padrão: escuro industrial (preto + marrom escuro + grafite) ===== */
@@ -76,6 +76,131 @@
     /* No claro, mais ESCURAS que o fundo. */
     --flux-grid: #C6B79C;
     --flux-edge: #4A3B2A;
+  }
+
+
+  /* ===== Azul escuro + branco ===== */
+  :root[data-theme="azul"]{
+    --paper: #0E1726;
+    --paper-card: #16223A;
+    --paper-raised: #1E2D4A;
+    --ink: #F2F6FC;
+    --ink-soft: #93A4C0;
+    --rust: #3E7BD4;
+    --rust-dark: #7FB0F0;
+    --moss: #4FB3A5;
+    --moss-bg: #12302E;
+    --line: #22314E;
+    --line-strong: #3A4D72;
+    --danger: #E0685F;
+    --danger-bg: #3A1F20;
+    --teal: #8FA3C2;
+    --teal-bg: #1A2740;
+    --steel: #6E8099;
+    --shadow-card: inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 16px rgba(0,0,0,0.5);
+    --sidebar-bg: #091120;
+    --sidebar-ink: #E8EEF8;
+    --sidebar-ink-soft: #8296B4;
+    --sidebar-line: #1B2740;
+    --radius: 6px;
+    --hatch: repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 24px);
+    --fx-sil-a: #0A1120;
+    --fx-sil-b: #6FA8E8;
+    --flux-grid: #28374F;
+    --flux-edge: #9DB2CE;
+  }
+
+  /* ===== Verde + preto ===== */
+  :root[data-theme="verde-preto"]{
+    --paper: #0A0D0A;
+    --paper-card: #121711;
+    --paper-raised: #1A211A;
+    --ink: #EAF2E6;
+    --ink-soft: #8FA089;
+    --rust: #4FA845;
+    --rust-dark: #86D274;
+    --moss: #C2B65A;
+    --moss-bg: #1D2A16;
+    --line: #1F2A1E;
+    --line-strong: #37482F;
+    --danger: #D9614E;
+    --danger-bg: #331C18;
+    --teal: #87988A;
+    --teal-bg: #18211A;
+    --steel: #6B7A68;
+    --shadow-card: inset 0 1px 0 rgba(255,255,255,0.03), 0 4px 16px rgba(0,0,0,0.6);
+    --sidebar-bg: #050705;
+    --sidebar-ink: #E2ECDD;
+    --sidebar-ink-soft: #7F8F79;
+    --sidebar-line: #182110;
+    --radius: 4px;
+    --hatch: repeating-linear-gradient(45deg, rgba(255,255,255,0.022) 0 1px, transparent 1px 24px);
+    --fx-sil-a: #070A07;
+    --fx-sil-b: #6CC25C;
+    --flux-grid: #243023;
+    --flux-edge: #9AAE93;
+  }
+
+  /* ===== Verde + branco ===== */
+  :root[data-theme="verde-branco"]{
+    --paper: #F4F8F2;
+    --paper-card: #FFFFFF;
+    --paper-raised: #FFFFFF;
+    --ink: #18240F;
+    --ink-soft: #5E6F54;
+    --rust: #2F7D32;
+    --rust-dark: #1C5720;
+    --moss: #7A8F3C;
+    --moss-bg: #E8F2E2;
+    --line: #DCE7D6;
+    --line-strong: #BCCFB3;
+    --danger: #A33A2C;
+    --danger-bg: #F6E3DF;
+    --teal: #5C7259;
+    --teal-bg: #E6EDE4;
+    --steel: #7F8F7B;
+    --shadow-card: 0 1px 2px rgba(24,36,15,0.06), 0 2px 8px rgba(24,36,15,0.08);
+    --sidebar-bg: #16250F;
+    --sidebar-ink: #EAF3E4;
+    --sidebar-ink-soft: #A3B79B;
+    --sidebar-line: #26381C;
+    --radius: 8px;
+    --hatch: repeating-linear-gradient(45deg, rgba(24,36,15,0.02) 0 1px, transparent 1px 24px);
+    --fx-sil-a: #0F1A0B;
+    --fx-sil-b: #2F7D32;
+    --flux-grid: #C3D6BA;
+    --flux-edge: #2C4426;
+  }
+
+  /* ===== Branco + bege ===== */
+  :root[data-theme="bege"]{
+    --paper: #FBF7F0;
+    --paper-card: #FFFFFF;
+    --paper-raised: #FFFFFF;
+    --ink: #2A2420;
+    --ink-soft: #7A6F63;
+    --rust: #A8814E;
+    --rust-dark: #7C5C33;
+    --moss: #8A8257;
+    --moss-bg: #F2EDE0;
+    --line: #EAE1D2;
+    --line-strong: #D3C6B0;
+    --danger: #A8503F;
+    --danger-bg: #F6E6E1;
+    --teal: #8A8075;
+    --teal-bg: #F0EBE2;
+    --steel: #9A9086;
+    --shadow-card: 0 1px 2px rgba(42,36,32,0.05), 0 2px 8px rgba(42,36,32,0.07);
+    --sidebar-bg: #2B2420;
+    --sidebar-ink: #F5EFE5;
+    --sidebar-ink-soft: #B3A696;
+    --sidebar-line: #3C332C;
+    --radius: 8px;
+    --hatch: repeating-linear-gradient(45deg, rgba(42,36,32,0.018) 0 1px, transparent 1px 24px);
+    --fx-sil-a: #231D18;
+    --fx-sil-b: #A8814E;
+    --flux-grid: #DCD0BB;
+    --flux-edge: #574A3A;
   }
 
   .rail-list, .problem-block, .summary, .action-card, .pdca-col, .dash-card, .why-chain, .cat-card {
@@ -398,6 +523,19 @@
   }
   .set-seg-btn:hover{ color: var(--ink); }
   .set-seg-btn.is-on{ background: var(--rust); color: #fff; }
+  .theme-grid{ display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .theme-opt{
+    display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+    padding: 7px; cursor: pointer; background: transparent;
+    border: 1px solid var(--line-strong); border-radius: var(--radius);
+    font-family:'Inter', sans-serif; font-size: 11px; color: var(--ink-soft);
+  }
+  .theme-opt:hover{ border-color: var(--rust); color: var(--ink); }
+  .theme-opt[aria-pressed="true"]{ border-color: var(--rust); border-width: 2px; padding: 6px; color: var(--ink); font-weight: 600; }
+  .theme-swatch{ display: flex; height: 26px; border-radius: 2px; overflow: hidden; }
+  .theme-swatch i{ flex: 1; }
+  .theme-swatch i:nth-child(2){ flex: .55; }
+  .theme-swatch i:nth-child(3){ flex: .3; }
   .set-note{ font-size: 11px; color: var(--ink-soft); margin: 9px 0 0; }
   .set-account{ font-size: 12.5px; color: var(--ink); margin: 0 0 10px; }
 
@@ -1748,7 +1886,9 @@
 </style>
 <!-- Backend (opcional): se config.js não tiver as chaves preenchidas, o app
      funciona normalmente em modo visitante. Veja docs/BACKEND.md. -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/dist/umd/supabase.js"
+        integrity="sha384-BWcjm9OdFth9TbhCxZPdm+gAOUMAzQy9nmTs12ioXdCcbVnJaPMn+fMUoQCLt60R"
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="config.js"></script>
 <script src="js/storage-adapter.js"></script>
 </head>
@@ -1956,13 +2096,13 @@
 
       <p class="tabs-group">Metodologias</p>
       <button class="tab-btn" data-view="pdca">🔄 &nbsp;PDCA</button>
+      <button class="tab-btn" data-view="fca">⚡ &nbsp;FCA</button>
+      <button class="tab-btn" data-view="dmaic">🎯 &nbsp;DMAIC</button>
+
+      <p class="tabs-group">Ferramentas</p>
       <button class="tab-btn" data-view="ishikawa">🐟 &nbsp;Ishikawa</button>
       <button class="tab-btn" data-view="5porques">🪜 &nbsp;5 Porquês</button>
       <button class="tab-btn" data-view="5w2h">🗂️ &nbsp;5W2H</button>
-      <button class="tab-btn" data-view="dmaic">🎯 &nbsp;DMAIC</button>
-      <button class="tab-btn" data-view="fca">⚡ &nbsp;FCA</button>
-
-      <p class="tabs-group">Ferramentas</p>
       <button class="tab-btn" data-view="fluxograma">🔀 &nbsp;Fluxogramas</button>
     </nav>
     <div class="sidebar-footer">
@@ -2069,7 +2209,7 @@
     <div class="section-head">
       <p class="eyebrow">Priorização</p>
       <h2>Gráfico de Pareto</h2>
-      <p class="sub">Regra 80/20: liste os problemas e seus valores (frequência, custo, perdas...). O gráfico ordena do maior para o menor e traça a curva acumulada — as barras destacadas à esquerda da linha de 80% são os "poucos vitais": ataque essas primeiro.</p>
+      <p class="sub">Regra 80/20: liste os problemas e seus valores; o gráfico ordena do maior para o menor e traça a curva acumulada.</p>
       <div class="toolbar">
         <button class="ghost" id="btn-send-pareto-ishikawa">Enviar problema prioritário para o Ishikawa</button>
         <button class="ghost" id="btn-new-pareto">Novo gráfico</button>
@@ -2110,7 +2250,7 @@
     <div class="section-head">
       <p class="eyebrow">Análise de causa raiz</p>
       <h2>Diagrama de Ishikawa</h2>
-      <p class="sub">Mapeia as possíveis causas de um problema em 6 categorias (os 6M), da cabeça do peixe até a raiz. Use quando a causa ainda não é clara e é preciso explorar várias frentes de uma vez.</p>
+      <p class="sub">Mapeia as possíveis causas de um problema.</p>
       <div class="toolbar">
         <button class="ghost" id="btn-import-pdca">Importar itens do PDCA</button>
         <button class="ghost" id="btn-new">Novo diagrama</button>
@@ -2227,11 +2367,11 @@
   </section>
 
 
-  <section id="view-kanban" class="view" style="display:none">
+   <section id="view-kanban" class="view" style="display:none">
     <div class="section-head">
       <p class="eyebrow">Acompanhamento</p>
       <h2>Kanban</h2>
-      <p class="sub">Onde as ações decididas na análise passam a ser acompanhadas até o fim. Importe o que foi definido no 5W2H e no FCA e mova os cartões conforme andam.</p>
+      <p class="sub">Onde as ações decididas na análise passam a ser acompanhadas..</p>
       <div class="toolbar">
         <button class="ghost" id="btn-kb-import-5w2h">Importar ações do 5W2H</button>
         <button class="ghost" id="btn-kb-import-fca">Importar ações do FCA</button>
@@ -2249,7 +2389,7 @@
     <div class="section-head">
       <p class="eyebrow">Ferramentas</p>
       <h2>Fluxogramas</h2>
-      <p class="sub">Desenhe o processo do jeito que ele acontece de verdade — com os desvios, as esperas e os retrabalhos. Cada análise pode ter quantos fluxogramas precisar.</p>
+      <p class="sub">Desenhe o processo do jeito que ele acontece de verdade.</p>
       <div class="toolbar">
         <button class="ghost" id="btn-flux-new">Novo fluxograma</button>
         <button class="ghost" id="btn-flux-rename">Renomear</button>
@@ -2281,7 +2421,7 @@
       </div>
       <div class="flux-selbar" id="flux-selbar" hidden></div>
     </div>
-    <p class="flux-hint">Arraste o fundo para mover · roda do mouse para aproximar · duplo clique numa forma abre o editor de texto, forma e cor · clique numa ligação para dar rótulo ou remover.</p>
+    <p class="flux-hint">Arraste Para ultilizar.</p>
   </section>
 
     </div>
@@ -2396,10 +2536,7 @@
     <div class="set-body">
       <section class="set-section">
         <h3 class="set-h">Tema</h3>
-        <div class="set-seg" id="set-theme" role="group" aria-label="Tema">
-          <button type="button" class="set-seg-btn" data-theme="dark">Escuro</button>
-          <button type="button" class="set-seg-btn" data-theme="light">Claro</button>
-        </div>
+        <div class="theme-grid" id="set-theme" role="group" aria-label="Tema"></div>
         <p class="set-note">A escolha fica guardada neste navegador.</p>
       </section>
       <section class="set-section">
@@ -2900,6 +3037,7 @@ function openExportPicker(kind){
    A biblioteca (ExcelJS, ~950 KB) só é baixada quando o usuário pede o Excel. */
 
 const EXCELJS_URL = 'https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js';
+const EXCELJS_SRI = 'sha384-Pqp51FUN2/qzfxZxBCtF0stpc9ONI6MYZpVqmo8m20SoaQCzf+arZvACkLkirlPz';
 let excelJsLoader = null;
 
 function loadExcelJS(){
@@ -2907,6 +3045,9 @@ function loadExcelJS(){
   if(excelJsLoader) return excelJsLoader;
   excelJsLoader = new Promise((resolve, reject) => {
     const s = document.createElement('script');
+    s.integrity = EXCELJS_SRI;
+    s.crossOrigin = 'anonymous';
+    s.referrerPolicy = 'no-referrer';
     s.src = EXCELJS_URL;
     s.onload = () => window.ExcelJS
       ? resolve(window.ExcelJS)
@@ -2987,14 +3128,23 @@ function xlBand(ws, lastCol, kicker, title, note){
     ws.mergeCells(`A${r}:${L}${r}`);
     for(let c = 1; c <= lastCol; c++) xl(ws.getRow(r).getCell(c), { fill: r === 4 ? XL.copper : XL.ink });
   }
-  xl(ws.getCell('A1'), { fill:XL.ink, color:XL.copperLt, size:8,  bold:true,   indent:1 }).value = kicker;
-  xl(ws.getCell('A2'), { fill:XL.ink, color:XL.textLt,   size:18, bold:true,   indent:1 }).value = title;
-  xl(ws.getCell('A3'), { fill:XL.ink, color:XL.textMut,  size:9,  italic:true, indent:1 }).value = note;
+  xl(ws.getCell('A1'), { fill:XL.ink, color:XL.copperLt, size:8,  bold:true,   indent:1 }).value = xlSafe(kicker);
+  xl(ws.getCell('A2'), { fill:XL.ink, color:XL.textLt,   size:18, bold:true,   indent:1 }).value = xlSafe(title);
+  xl(ws.getCell('A3'), { fill:XL.ink, color:XL.textMut,  size:9,  italic:true, indent:1 }).value = xlSafe(note);
   ws.getRow(1).height = 15;
   ws.getRow(2).height = 26;
   ws.getRow(3).height = 30;
   ws.getRow(4).height = 4;
   ws.getRow(5).height = 7;
+}
+
+/* Excel trata texto iniciado por = + - @ (e tab/CR) como FÓRMULA ao abrir o
+   arquivo. Como o export existe pra ser enviado a outra pessoa, um campo
+   digitado por um usuário vira execução na máquina de quem abre. O prefixo
+   com apóstrofo força o Excel a tratar como texto. */
+function xlSafe(v){
+  if(typeof v !== 'string') return v;
+  return /^[=+\-@\t\r]/.test(v) ? "'" + v : v;
 }
 
 function xlTableHead(ws, rowIdx, headers){
@@ -3004,7 +3154,7 @@ function xlTableHead(ws, rowIdx, headers){
       fill: XL.graphite, color: XL.copperLt, size: 9, bold: true,
       h: h.align || 'left', indent: 1,
       border: { bottom:{ style:'medium', color:{ argb:XL.copper } } }
-    }).value = String(h.label).toUpperCase();
+    }).value = xlSafe(String(h.label).toUpperCase());
   });
   row.height = 24;
   return rowIdx + 1;
@@ -3012,7 +3162,7 @@ function xlTableHead(ws, rowIdx, headers){
 
 function xlEmpty(ws, rowIdx, lastCol, msg){
   ws.mergeCells(`A${rowIdx}:${colLetter(lastCol)}${rowIdx}`);
-  xl(ws.getCell(`A${rowIdx}`), { fill:XL.paperAlt, color:XL.textSoft, italic:true, indent:1, h:'left' }).value = msg;
+  xl(ws.getCell(`A${rowIdx}`), { fill:XL.paperAlt, color:XL.textSoft, italic:true, indent:1, h:'left' }).value = xlSafe(msg);
   ws.getRow(rowIdx).height = 26;
   return rowIdx + 1;
 }
@@ -3024,14 +3174,14 @@ function xlGroupRow(ws, rowIdx, lastCol, text, accent){
   xl(ws.getCell(`A${rowIdx}`), {
     fill: XL.paperWarm, color: accent || XL.textDk, size: 10, bold: true, indent: 1,
     border: { top:{ style:'thin', color:{ argb:accent || XL.line } } }
-  }).value = String(text).toUpperCase();
+  }).value = xlSafe(String(text).toUpperCase());
   ws.getRow(rowIdx).height = 20;
   return rowIdx + 1;
 }
 
 function xlFooterNote(ws, rowIdx, lastCol, text){
   ws.mergeCells(`A${rowIdx}:${colLetter(lastCol)}${rowIdx}`);
-  xl(ws.getCell(`A${rowIdx}`), { color:XL.textSoft, size:8, italic:true, indent:1 }).value = text;
+  xl(ws.getCell(`A${rowIdx}`), { color:XL.textSoft, size:8, italic:true, indent:1 }).value = xlSafe(text);
   ws.getRow(rowIdx).height = 22;
 }
 
@@ -3097,27 +3247,27 @@ function xlSheetCapa(wb, ctx, picked){
   const started = ctx.stages.filter(s => s.status !== 'vazia').length;
 
   ws.mergeCells('B3:H3');
-  xl(ws.getCell('B3'), { fill:XL.ink, color:XL.textLt, size:16, bold:true }).value = 'M E T O D O L O G I A S';
+  xl(ws.getCell('B3'), { fill:XL.ink, color:XL.textLt, size:16, bold:true }).value = xlSafe('M E T O D O L O G I A S');
   ws.getRow(3).height = 26;
 
   ws.mergeCells('B4:C4');
-  xl(ws.getCell('B4'), { fill:XL.copper }).value = '';
+  xl(ws.getCell('B4'), { fill:XL.copper }).value = xlSafe('');
   xl(ws.getRow(4).getCell(3), { fill:XL.copper });
   ws.getRow(4).height = 4;
 
   ws.mergeCells('B6:H6');
-  xl(ws.getCell('B6'), { fill:XL.ink, color:XL.copperLt, size:8, bold:true }).value = 'RELATÓRIO DE ANÁLISE DE CAUSA E PLANO DE AÇÃO';
+  xl(ws.getCell('B6'), { fill:XL.ink, color:XL.copperLt, size:8, bold:true }).value = xlSafe('RELATÓRIO DE ANÁLISE DE CAUSA E PLANO DE AÇÃO');
   ws.getRow(6).height = 15;
 
   ws.mergeCells('B8:H10');
-  xl(ws.getCell('B8'), { fill:XL.ink, color:XL.textLt, size:28, bold:true, v:'top' }).value = ctx.name;
+  xl(ws.getCell('B8'), { fill:XL.ink, color:XL.textLt, size:28, bold:true, v:'top' }).value = xlSafe(ctx.name);
   ws.getRow(8).height = 34; ws.getRow(9).height = 34; ws.getRow(10).height = 10;
 
   ws.mergeCells('B12:H12');
-  xl(ws.getCell('B12'), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'PROBLEMA / EFEITO ANALISADO';
+  xl(ws.getCell('B12'), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = xlSafe('PROBLEMA / EFEITO ANALISADO');
   ws.mergeCells('B13:H15');
   xl(ws.getCell('B13'), { fill:XL.inkSoft, color:XL.textLt, size:13, v:'middle', indent:1 })
-    .value = ctx.problem || '— não definido nesta análise —';
+    .value = xlSafe(ctx.problem || '— não definido nesta análise —');
   ws.getRow(13).height = 22; ws.getRow(14).height = 22; ws.getRow(15).height = 22;
 
   const nomesEscolhidos = ctx.stages.filter(s => picked.includes(s.view)).map(s => s.name);
@@ -3131,30 +3281,30 @@ function xlSheetCapa(wb, ctx, picked){
   ];
   let r = 18;
   ws.mergeCells(`B17:H17`);
-  xl(ws.getCell('B17'), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'FICHA DA ANÁLISE';
+  xl(ws.getCell('B17'), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = xlSafe('FICHA DA ANÁLISE');
   meta.forEach(([k, v]) => {
-    xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:9 }).value = k;
+    xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:9 }).value = xlSafe(k);
     ws.mergeCells(`D${r}:H${r}`);
-    xl(ws.getCell(`D${r}`), { fill:XL.ink, color:XL.textLt, size:10, bold:true }).value = v;
+    xl(ws.getCell(`D${r}`), { fill:XL.ink, color:XL.textLt, size:10, bold:true }).value = xlSafe(v);
     ws.getRow(r).height = 19;
     r++;
   });
 
   r += 1;
   ws.mergeCells(`B${r}:H${r}`);
-  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'PROGRESSO DA TRILHA';
+  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = xlSafe('PROGRESSO DA TRILHA');
   r++;
   ws.mergeCells(`B${r}:E${r}`);
   xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.copper, size:14, bold:true })
-    .value = '█'.repeat(started) + '░'.repeat(8 - started);
+    .value = xlSafe('█'.repeat(started) + '░'.repeat(8 - started));
   ws.mergeCells(`F${r}:H${r}`);
   xl(ws.getCell(`F${r}`), { fill:XL.ink, color:XL.textLt, size:10 })
-    .value = `${started}/8 etapas iniciadas`;
+    .value = xlSafe(`${started}/8 etapas iniciadas`);
   ws.getRow(r).height = 22;
 
   r += 2;
   ws.mergeCells(`B${r}:H${r}`);
-  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = 'COMO LER ESTE ARQUIVO';
+  xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textMut, size:8, bold:true }).value = xlSafe('COMO LER ESTE ARQUIVO');
   r++;
   [
     'Painel — visão executiva: status de cada metodologia e o próximo passo sugerido.',
@@ -3162,14 +3312,14 @@ function xlSheetCapa(wb, ctx, picked){
     'Cada aba traz uma nota explicando a ferramenta e como interpretar as colunas.'
   ].forEach(line => {
     ws.mergeCells(`B${r}:H${r}`);
-    xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textLt, size:9, indent:1 }).value = '›  ' + line;
+    xl(ws.getCell(`B${r}`), { fill:XL.ink, color:XL.textLt, size:9, indent:1 }).value = xlSafe('›  ' + line);
     ws.getRow(r).height = 17;
     r++;
   });
 
   ws.mergeCells('B38:H38');
   xl(ws.getCell('B38'), { fill:XL.ink, color:XL.textMut, size:8, italic:true })
-    .value = 'Gerado automaticamente pelo app Metodologias · os dados da análise permanecem no navegador de quem exportou.';
+    .value = xlSafe('Gerado automaticamente pelo app Metodologias · os dados da análise permanecem no navegador de quem exportou.');
   return ws;
 }
 
@@ -3194,7 +3344,7 @@ function xlSheetPainel(wb, ctx, picked){
   let row = 6;
   kpis.forEach((kp, i) => {
     const c = i + 1;
-    xl(ws.getRow(row).getCell(c),     { fill:XL.graphite, color:XL.copperLt, size:8, bold:true, h:'center' }).value = String(kp[0]).toUpperCase();
+    xl(ws.getRow(row).getCell(c),     { fill:XL.graphite, color:XL.copperLt, size:8, bold:true, h:'center' }).value = xlSafe(String(kp[0]).toUpperCase());
     xl(ws.getRow(row + 1).getCell(c), { fill:XL.inkSoft,  color:XL.textLt,  size:18, bold:true, h:'center',
                                         border:{ bottom:{ style:'medium', color:{ argb:XL.copper } } } }).value = kp[1];
   });
@@ -3222,11 +3372,11 @@ function xlSheetPainel(wb, ctx, picked){
   ctx.stages.forEach((st, i) => {
     const bg = (i % 2) ? XL.paperAlt : XL.paper;
     const sty = XL_STATUS[st.status];
-    xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, bold:true, h:'center', border:xlHair() }).value = i + 1;
-    xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = st.name;
-    xl(ws.getRow(row).getCell(3), { fill:sty.fill, color:sty.color, bold:true, size:9, h:'center', border:xlHair() }).value = sty.label;
-    xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.textSoft, indent:1, border:xlHair() }).value = st.summary;
-    xl(ws.getRow(row).getCell(5), { fill:bg, color:XL.textSoft, italic:true, indent:1, border:xlHair() }).value = PURPOSE[st.name] || '';
+    xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, bold:true, h:'center', border:xlHair() }).value = xlSafe(i + 1);
+    xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = xlSafe(st.name);
+    xl(ws.getRow(row).getCell(3), { fill:sty.fill, color:sty.color, bold:true, size:9, h:'center', border:xlHair() }).value = xlSafe(sty.label);
+    xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.textSoft, indent:1, border:xlHair() }).value = xlSafe(st.summary);
+    xl(ws.getRow(row).getCell(5), { fill:bg, color:XL.textSoft, italic:true, indent:1, border:xlHair() }).value = xlSafe(PURPOSE[st.name] || '');
     ws.getRow(row).height = 20;
     row++;
   });
@@ -3242,11 +3392,11 @@ function xlSheetPainel(wb, ctx, picked){
   ws.getRow(row).height = 24;
 
   row += 2;
-  xl(ws.getCell(`A${row}`), { color:XL.textMut, size:8, bold:true }).value = 'LEGENDA';
+  xl(ws.getCell(`A${row}`), { color:XL.textMut, size:8, bold:true }).value = xlSafe('LEGENDA');
   row++;
   [['Preenchida','ok'], ['Em andamento','andamento'], ['Não iniciada','vazia']].forEach(([, key]) => {
     const s = XL_STATUS[key];
-    xl(ws.getRow(row).getCell(1), { fill:s.fill, color:s.color, bold:true, size:9, h:'center' }).value = s.label;
+    xl(ws.getRow(row).getCell(1), { fill:s.fill, color:s.color, bold:true, size:9, h:'center' }).value = xlSafe(s.label);
     ws.mergeCells(`B${row}:E${row}`);
     xl(ws.getCell(`B${row}`), { color:XL.textSoft, size:9, indent:1 }).value =
       key === 'ok' ? 'A etapa tem dados suficientes para sustentar uma decisão.'
@@ -3291,10 +3441,10 @@ function xlSheetVoc(wb, ctx){
     voc.entries.forEach((e, i) => {
       const bg = (i % 2) ? XL.paperAlt : XL.paper;
       const s = SENT[e.sentiment] || SENT.neutro;
-      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = i + 1;
-      xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair() }).value = e.comment || '—';
-      xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, color:XL.copper, indent:1, border:xlHair() }).value = e.category || '(sem categoria)';
-      xl(ws.getRow(row).getCell(4), { fill:s.fill, color:s.color, bold:true, size:9, h:'center', border:xlHair() }).value = s.label;
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = xlSafe(i + 1);
+      xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair() }).value = xlSafe(e.comment || '—');
+      xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, color:XL.copper, indent:1, border:xlHair() }).value = xlSafe(e.category || '(sem categoria)');
+      xl(ws.getRow(row).getCell(4), { fill:s.fill, color:s.color, bold:true, size:9, h:'center', border:xlHair() }).value = xlSafe(s.label);
       ws.getRow(row).height = 30;
       row++;
     });
@@ -3308,10 +3458,10 @@ function xlSheetVoc(wb, ctx){
       row = xlGroupRow(ws, row, 4, 'Contagem por categoria — envie estes números para o Pareto', XL.copper);
       cats.forEach((c, i) => {
         const bg = (i % 2) ? XL.paperAlt : XL.paper;
-        xl(ws.getRow(row).getCell(1), { fill:bg, border:xlHair() }).value = '';
-        xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair() }).value = c;
-        xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, h:'left', indent:1, border:xlHair() }).value = counts[c];
-        xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.copper, h:'left', border:xlHair() }).value = '█'.repeat(Math.min(counts[c], 12));
+        xl(ws.getRow(row).getCell(1), { fill:bg, border:xlHair() }).value = xlSafe('');
+        xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair() }).value = xlSafe(c);
+        xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, h:'left', indent:1, border:xlHair() }).value = xlSafe(counts[c]);
+        xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.copper, h:'left', border:xlHair() }).value = xlSafe('█'.repeat(Math.min(counts[c], 12)));
         ws.getRow(row).height = 18;
         row++;
       });
@@ -3354,21 +3504,21 @@ function xlSheetPareto(wb, ctx){
       const bg = isVital ? XL.copperBg : ((i % 2) ? XL.paperAlt : XL.paper);
       const accent = isVital ? { left:{ style:'thick', color:{ argb:XL.copper } } } : {};
 
-      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, bold:true, h:'center', border:Object.assign({}, xlHair(), accent) }).value = i + 1;
-      xl(ws.getRow(row).getCell(2), { fill:bg, bold:isVital, indent:1, border:xlHair() }).value = it.problem || '(sem nome)';
-      xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, h:'right', indent:1, border:xlHair(), numFmt:'#,##0.##' }).value = val;
-      xl(ws.getRow(row).getCell(4), { fill:bg, h:'right', indent:1, border:xlHair(), numFmt:'0.0%' }).value = pct;
-      xl(ws.getRow(row).getCell(5), { fill:bg, h:'right', indent:1, bold:true, color: isVital ? XL.copper : XL.textSoft, border:xlHair(), numFmt:'0.0%' }).value = cumPct;
-      xl(ws.getRow(row).getCell(6), { fill:bg, color: isVital ? XL.copper : XL.steel, border:xlHair() }).value = '█'.repeat(Math.max(1, Math.round(pct * 40)));
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, bold:true, h:'center', border:Object.assign({}, xlHair(), accent) }).value = xlSafe(i + 1);
+      xl(ws.getRow(row).getCell(2), { fill:bg, bold:isVital, indent:1, border:xlHair() }).value = xlSafe(it.problem || '(sem nome)');
+      xl(ws.getRow(row).getCell(3), { fill:bg, bold:true, h:'right', indent:1, border:xlHair(), numFmt:'#,##0.##' }).value = xlSafe(val);
+      xl(ws.getRow(row).getCell(4), { fill:bg, h:'right', indent:1, border:xlHair(), numFmt:'0.0%' }).value = xlSafe(pct);
+      xl(ws.getRow(row).getCell(5), { fill:bg, h:'right', indent:1, bold:true, color: isVital ? XL.copper : XL.textSoft, border:xlHair(), numFmt:'0.0%' }).value = xlSafe(cumPct);
+      xl(ws.getRow(row).getCell(6), { fill:bg, color: isVital ? XL.copper : XL.steel, border:xlHair() }).value = xlSafe('█'.repeat(Math.max(1, Math.round(pct * 40))));
       xl(ws.getRow(row).getCell(7), { fill:bg, color: isVital ? XL.copper : XL.steel, bold:true, size:9, h:'center', border:xlHair() })
-        .value = isVital ? 'POUCOS VITAIS' : 'muitos triviais';
+        .value = xlSafe(isVital ? 'POUCOS VITAIS' : 'muitos triviais');
       ws.getRow(row).height = 19;
       row++;
     });
 
-    xl(ws.getRow(row).getCell(1), { fill:XL.graphite, color:XL.textLt, bold:true, h:'center' }).value = '';
-    xl(ws.getRow(row).getCell(2), { fill:XL.graphite, color:XL.textLt, bold:true, indent:1 }).value = 'TOTAL';
-    xl(ws.getRow(row).getCell(3), { fill:XL.graphite, color:XL.copperLt, bold:true, h:'right', indent:1, numFmt:'#,##0.##' }).value = total;
+    xl(ws.getRow(row).getCell(1), { fill:XL.graphite, color:XL.textLt, bold:true, h:'center' }).value = xlSafe('');
+    xl(ws.getRow(row).getCell(2), { fill:XL.graphite, color:XL.textLt, bold:true, indent:1 }).value = xlSafe('TOTAL');
+    xl(ws.getRow(row).getCell(3), { fill:XL.graphite, color:XL.copperLt, bold:true, h:'right', indent:1, numFmt:'#,##0.##' }).value = xlSafe(total);
     [4,5,6,7].forEach(c => xl(ws.getRow(row).getCell(c), { fill:XL.graphite }));
     ws.getRow(row).height = 22;
     row += 2;
@@ -3376,7 +3526,7 @@ function xlSheetPareto(wb, ctx){
     ws.mergeCells(`A${row}:G${row}`);
     xl(ws.getCell(`A${row}`), { fill:XL.copperBg, bold:true, indent:1,
                                 border:{ left:{ style:'thick', color:{ argb:XL.copper } } } })
-      .value = `LEITURA  ›  ${vitalCount} de ${sorted.length} problema(s) concentram ${(vitalCum * 100).toFixed(1)}% do total. Resolver esses ${vitalCount} resolve a maior parte da dor.`;
+      .value = xlSafe(`LEITURA  ›  ${vitalCount} de ${sorted.length} problema(s) concentram ${(vitalCum * 100).toFixed(1)}% do total. Resolver esses ${vitalCount} resolve a maior parte da dor.`);
     ws.getRow(row).height = 24;
     ws.autoFilter = `A6:G6`;
   }
@@ -3406,16 +3556,16 @@ function xlSheetIshikawa(wb, ctx){
       row = xlGroupRow(ws, row, 4, `${cat.name}  ·  ${cat.causes.length} causa(s)`, XL.copper);
       cat.causes.forEach(cause => {
         const bg = (z++ % 2) ? XL.paperAlt : XL.paper;
-        xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, size:9, indent:1, border:xlHair() }).value = cat.name;
-        xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = cause.text || '—';
-        xl(ws.getRow(row).getCell(3), { fill:bg, color:XL.textSoft, indent:1, border:xlHair() }).value = cause.subcauses.length ? '' : '—';
-        xl(ws.getRow(row).getCell(4), { fill:bg, border:xlHair() }).value = '';
+        xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, size:9, indent:1, border:xlHair() }).value = xlSafe(cat.name);
+        xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = xlSafe(cause.text || '—');
+        xl(ws.getRow(row).getCell(3), { fill:bg, color:XL.textSoft, indent:1, border:xlHair() }).value = xlSafe(cause.subcauses.length ? '' : '—');
+        xl(ws.getRow(row).getCell(4), { fill:bg, border:xlHair() }).value = xlSafe('');
         ws.getRow(row).height = 19;
         row++;
         cause.subcauses.forEach(sc => {
           const sbg = sc.isSolution ? XL.brassBg : ((z % 2) ? XL.paperAlt : XL.paper);
-          xl(ws.getRow(row).getCell(1), { fill:sbg, border:xlHair() }).value = '';
-          xl(ws.getRow(row).getCell(2), { fill:sbg, color:XL.textMut, size:9, indent:2, border:xlHair() }).value = '↳ ' + (cause.text || '');
+          xl(ws.getRow(row).getCell(1), { fill:sbg, border:xlHair() }).value = xlSafe('');
+          xl(ws.getRow(row).getCell(2), { fill:sbg, color:XL.textMut, size:9, indent:2, border:xlHair() }).value = xlSafe('↳ ' + (cause.text || ''));
           xl(ws.getRow(row).getCell(3), { fill:sbg, color: sc.isSolution ? XL.brassDk : XL.textDk,
                                           bold: !!sc.isSolution, indent:1, border:xlHair() }).value = sc.text || '—';
           xl(ws.getRow(row).getCell(4), { fill:sbg, color: sc.isSolution ? XL.brassDk : XL.textMut,
@@ -3449,8 +3599,8 @@ function xlSheetPorques(wb, ctx){
   } else {
     fiveWhys.chains.forEach((c, i) => {
       const bg = c.rootConfirmed ? XL.brassBg : ((i % 2) ? XL.paperAlt : XL.paper);
-      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = i + 1;
-      xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = c.problem || '—';
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = xlSafe(i + 1);
+      xl(ws.getRow(row).getCell(2), { fill:bg, bold:true, indent:1, border:xlHair() }).value = xlSafe(c.problem || '—');
       for(let w = 0; w < 5; w++){
         const txt = (c.whys[w] || '').trim();
         const isLast = txt && !(c.whys.slice(w + 1).some(x => (x || '').trim()));
@@ -3458,13 +3608,13 @@ function xlSheetPorques(wb, ctx){
           fill:bg, indent:1, border:xlHair(),
           color: isLast && c.rootConfirmed ? XL.brassDk : (txt ? XL.textDk : XL.textMut),
           bold: !!(isLast && c.rootConfirmed)
-        }).value = txt || '—';
+        }).value = xlSafe(txt || '—');
       }
       xl(ws.getRow(row).getCell(8), {
         fill: c.rootConfirmed ? XL.brassBg : XL.paperWarm,
         color: c.rootConfirmed ? XL.brassDk : XL.steel,
         bold:true, size:9, h:'center', border:xlHair()
-      }).value = c.rootConfirmed ? '✓ CONFIRMADA' : 'em aberto';
+      }).value = xlSafe(c.rootConfirmed ? '✓ CONFIRMADA' : 'em aberto');
       ws.getRow(row).height = 34;
       row++;
     });
@@ -3492,12 +3642,12 @@ function xlSheetFca(wb, ctx){
   } else {
     fca.entries.forEach((e, i) => {
       const bg = (i % 2) ? XL.paperAlt : XL.paper;
-      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = i + 1;
-      xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair(), strike:!!e.done }).value = e.fact || '—';
-      xl(ws.getRow(row).getCell(3), { fill:bg, color:XL.danger, indent:1, border:xlHair() }).value = e.cause || '—';
-      xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.brassDk, bold:true, indent:1, border:xlHair() }).value = e.action || '—';
-      xl(ws.getRow(row).getCell(5), { fill:bg, indent:1, border:xlHair() }).value = e.responsible || '—';
-      xl(ws.getRow(row).getCell(6), { fill:bg, h:'center', border:xlHair() }).value = e.deadline || '—';
+      xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, h:'center', border:xlHair() }).value = xlSafe(i + 1);
+      xl(ws.getRow(row).getCell(2), { fill:bg, indent:1, border:xlHair(), strike:!!e.done }).value = xlSafe(e.fact || '—');
+      xl(ws.getRow(row).getCell(3), { fill:bg, color:XL.danger, indent:1, border:xlHair() }).value = xlSafe(e.cause || '—');
+      xl(ws.getRow(row).getCell(4), { fill:bg, color:XL.brassDk, bold:true, indent:1, border:xlHair() }).value = xlSafe(e.action || '—');
+      xl(ws.getRow(row).getCell(5), { fill:bg, indent:1, border:xlHair() }).value = xlSafe(e.responsible || '—');
+      xl(ws.getRow(row).getCell(6), { fill:bg, h:'center', border:xlHair() }).value = xlSafe(e.deadline || '—');
       xl(ws.getRow(row).getCell(7), { fill: e.done ? XL.brassBg : XL.paperWarm, color: e.done ? XL.brassDk : XL.steel,
                                       bold:true, size:9, h:'center', border:xlHair() }).value = e.done ? '✓ CONCLUÍDO' : 'pendente';
       ws.getRow(row).height = 32;
@@ -3548,7 +3698,7 @@ function xlSheet5w2h(wb, ctx){
         [11, Number(it.t) || 1,    { h:'center' }]
       ];
       cells.forEach(([c, v, o]) => xl(ws.getRow(row).getCell(c), Object.assign({ fill:bg, border:xlHair() }, o)).value = v);
-      xl(ws.getRow(row).getCell(12), { fill:scoreFill, color:scoreColor, bold:true, h:'center', border:xlHair() }).value = score;
+      xl(ws.getRow(row).getCell(12), { fill:scoreFill, color:scoreColor, bold:true, h:'center', border:xlHair() }).value = xlSafe(score);
       xl(ws.getRow(row).getCell(13), { fill: it.done ? XL.brassBg : XL.paperWarm, color: it.done ? XL.brassDk : XL.steel,
                                        bold:true, size:9, h:'center', border:xlHair() }).value = it.done ? '✓ CONCLUÍDA' : 'pendente';
       ws.getRow(row).height = 30;
@@ -3556,13 +3706,13 @@ function xlSheet5w2h(wb, ctx){
     });
 
     const done = plan.items.filter(i => i.done).length;
-    xl(ws.getRow(row).getCell(1), { fill:XL.graphite }).value = '';
+    xl(ws.getRow(row).getCell(1), { fill:XL.graphite }).value = xlSafe('');
     ws.mergeCells(`B${row}:K${row}`);
     xl(ws.getCell(`B${row}`), { fill:XL.graphite, color:XL.textLt, bold:true, indent:1 })
-      .value = `${plan.items.length} ação(ões) no plano · ${done} concluída(s) · ${plan.items.length - done} pendente(s)`;
+      .value = xlSafe(`${plan.items.length} ação(ões) no plano · ${done} concluída(s) · ${plan.items.length - done} pendente(s)`);
     xl(ws.getRow(row).getCell(12), { fill:XL.graphite, color:XL.copperLt, bold:true, h:'center' })
-      .value = Math.max(0, ...plan.items.map(computeGutScore));
-    xl(ws.getRow(row).getCell(13), { fill:XL.graphite, color:XL.textMut, size:8, bold:true, h:'center' }).value = 'GUT MÁX';
+      .value = xlSafe(Math.max(0, ...plan.items.map(computeGutScore)));
+    xl(ws.getRow(row).getCell(13), { fill:XL.graphite, color:XL.textMut, size:8, bold:true, h:'center' }).value = xlSafe('GUT MÁX');
     ws.getRow(row).height = 22;
     ws.autoFilter = `A6:M6`;
     row += 2;
@@ -3570,7 +3720,7 @@ function xlSheet5w2h(wb, ctx){
     ws.mergeCells(`A${row}:M${row}`);
     xl(ws.getCell(`A${row}`), { fill:XL.copperBg, bold:true, indent:1,
                                 border:{ left:{ style:'thick', color:{ argb:XL.copper } } } })
-      .value = 'COMO LER O GUT  ›  cada fator vai de 1 a 5 e o score é G × U × T (1 a 125). ≥ 64 crítico · 27 a 63 relevante · < 27 pode esperar. As linhas já vêm ordenadas do mais crítico para o menos.';
+      .value = xlSafe('COMO LER O GUT  ›  cada fator vai de 1 a 5 e o score é G × U × T (1 a 125). ≥ 64 crítico · 27 a 63 relevante · < 27 pode esperar. As linhas já vêm ordenadas do mais crítico para o menos.');
     ws.getRow(row).height = 26;
   }
   xlFooterNote(ws, row + 2, 13, 'Didática: uma ação sem "quem" e sem "quando" não é plano, é intenção. Preencha essas duas colunas antes de fechar a análise.');
@@ -3595,15 +3745,15 @@ function xlSheetQuadro(wb, ctx, opts){
       row = xlGroupRow(ws, row, 3, `${si + 1}. ${stage.label}  ·  ${items.length} item(ns)`, XL.copper);
       if(!items.length){
         ws.mergeCells(`A${row}:C${row}`);
-        xl(ws.getCell(`A${row}`), { fill:XL.paper, color:XL.textMut, italic:true, size:9, indent:2, border:xlHair() }).value = 'sem itens nesta etapa';
+        xl(ws.getCell(`A${row}`), { fill:XL.paper, color:XL.textMut, italic:true, size:9, indent:2, border:xlHair() }).value = xlSafe('sem itens nesta etapa');
         ws.getRow(row).height = 17;
         row++;
       }
       items.forEach((it, i) => {
         const bg = (i % 2) ? XL.paperAlt : XL.paper;
-        xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, size:9, indent:1, border:xlHair() }).value = stage.label;
-        xl(ws.getRow(row).getCell(2), { fill:bg, color:XL.textMut, h:'center', border:xlHair() }).value = i + 1;
-        xl(ws.getRow(row).getCell(3), { fill:bg, indent:1, border:xlHair() }).value = it.text || '—';
+        xl(ws.getRow(row).getCell(1), { fill:bg, color:XL.textSoft, size:9, indent:1, border:xlHair() }).value = xlSafe(stage.label);
+        xl(ws.getRow(row).getCell(2), { fill:bg, color:XL.textMut, h:'center', border:xlHair() }).value = xlSafe(i + 1);
+        xl(ws.getRow(row).getCell(3), { fill:bg, indent:1, border:xlHair() }).value = xlSafe(it.text || '—');
         ws.getRow(row).height = 22;
         row++;
       });
@@ -5984,19 +6134,30 @@ document.getElementById('trilha-problem').addEventListener('input', (e) => {
   const seg = document.getElementById('set-theme');
   if(!modal || !gear || !seg) return;
 
-  const botoes = [...seg.querySelectorAll('.set-seg-btn')];
+  // 'dark' é o tema sem atributo (o padrão). Os outros entram em data-theme.
+  const TEMAS = [
+    { id:'dark',          nome:'Escuro',        cores:['#121110','#C2703A','#ECE6DB'] },
+    { id:'light',         nome:'Claro',         cores:['#EDE6D8','#6B3F23','#211B15'] },
+    { id:'azul',          nome:'Azul + branco', cores:['#0E1726','#3E7BD4','#F2F6FC'] },
+    { id:'verde-preto',   nome:'Verde + preto', cores:['#0A0D0A','#4FA845','#EAF2E6'] },
+    { id:'verde-branco',  nome:'Verde + branco',cores:['#F4F8F2','#2F7D32','#18240F'] },
+    { id:'bege',          nome:'Branco + bege', cores:['#FBF7F0','#A8814E','#2A2420'] }
+  ];
+
+  seg.innerHTML = TEMAS.map(t =>
+    `<button type="button" class="theme-opt" data-theme="${t.id}" aria-pressed="false">
+       <span class="theme-swatch" aria-hidden="true">${t.cores.map(c => `<i style="background:${c}"></i>`).join('')}</span>
+       <span>${t.nome}</span>
+     </button>`).join('');
+  const botoes = [...seg.querySelectorAll('.theme-opt')];
 
   function marcar(){
-    const atual = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-    botoes.forEach(b => {
-      const on = b.dataset.theme === atual;
-      b.classList.toggle('is-on', on);
-      b.setAttribute('aria-pressed', on ? 'true' : 'false');
-    });
+    const atual = document.documentElement.dataset.theme || 'dark';
+    botoes.forEach(b => b.setAttribute('aria-pressed', b.dataset.theme === atual ? 'true' : 'false'));
   }
 
   function aplicarTema(tema){
-    if(tema === 'light') document.documentElement.dataset.theme = 'light';
+    if(tema && tema !== 'dark') document.documentElement.dataset.theme = tema;
     else delete document.documentElement.dataset.theme;
     try{ localStorage.setItem('metodologias:tema', tema); }catch(e){}
     marcar();
